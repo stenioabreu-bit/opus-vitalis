@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordem Paranormal - Dashboard</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style>
+        .dashboard-header {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .welcome-message h2 {
+            color: var(--accent-blue);
+            margin-bottom: 5px;
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-menu .btn {
+            min-width: 150px;
+        }
+        
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            color: var(--accent-blue);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .recent-activity {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .nav-menu {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard-header">
+            <div class="welcome-message">
+                <h2>Bem-vindo, <span id="user-name">Agente</span></h2>
+                <p style="color: var(--text-secondary);">Central de Comando - Ordem Paranormal</p>
+            </div>
+            
+            <div class="nav-menu">
+                <a href="create-report.html" class="btn btn-primary">Criar Relatório</a>
+                <a href="reports.html" class="btn btn-secondary">Meus Relatórios</a>
+                <a href="shared-reports.html" class="btn btn-secondary">Relatórios Compartilhados</a>
+                <button id="logout-btn" class="btn btn-danger">Sair</button>
+            </div>
+        </div>
+        
+        <div id="message-container"></div>
+        
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-number" id="total-reports">0</div>
+                <div>Relatórios Criados</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number" id="shared-reports">0</div>
+                <div>Relatórios Compartilhados</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number" id="team-reports">0</div>
+                <div>Relatórios da Equipe</div>
+            </div>
+        </div>
+        
+        <div class="recent-activity">
+            <h3 style="color: var(--accent-blue); margin-bottom: 20px;">Atividade Recente</h3>
+            <div id="recent-activity-list">
+                <p style="color: var(--text-secondary); text-align: center;">
+                    Nenhuma atividade recente encontrada.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/reports.js"></script>
+    <script src="scripts/teams.js"></script>
+    <script>
+        // Initialize dashboard functionality
+        document.addEventListener('DOMContentLoaded', async function() {
+            const authService = new AuthService();
+            const reportsService = new ReportsService();
+            const teamService = new TeamService();
+            
+            // Check authentication
+            if (!authService.checkSession()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const currentUser = authService.getCurrentUser();
+            if (currentUser) {
+                document.getElementById('user-name').textContent = currentUser.name || currentUser.username;
+            }
+            
+            // Handle logout
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                if (confirm('Tem certeza que deseja sair?')) {
+                    authService.handleLogout();
+                }
+            });
+            
+            // Load dashboard data (placeholder for now)
+            try {
+                // These will be implemented in later tasks
+                // const reports = await reportsService.loadReports(currentUser.id);
+                // const sharedReports = await reportsService.loadSharedReports(currentUser.id);
+                // const teamReports = await teamService.getTeamReports(currentUser.id);
+                
+                // Update stats (placeholder values)
+                document.getElementById('total-reports').textContent = '0';
+                document.getElementById('shared-reports').textContent = '0';
+                document.getElementById('team-reports').textContent = '0';
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                Utils.showMessage('Erro ao carregar dados do dashboard.', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

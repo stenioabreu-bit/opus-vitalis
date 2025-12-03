@@ -1,0 +1,41 @@
+{
+  "report_001": {
+    "id": "report_001",
+    "title": "Investigação Paranormal - Casa Abandonada",
+    "description": "Relatório detalhado da investigação na casa abandonada da Rua das Flores, 123. Durante a missão, foram identificados fenômenos paranormais incluindo movimentação de objetos, quedas de temperatura e manifestações auditivas. A equipe conseguiu neutralizar a entidade responsável pelos distúrbios.",
+    "missionDate": "2024-12-01",
+    "status": "completed",
+    "authorId": "user_001",
+    "authorName": "Bella Evans",
+    "createdAt": "2024-12-01T18:30:00Z",
+    "updatedAt": "2024-12-01T18:30:00Z",
+    "sharedWith": ["user_002"],
+    "isPublic": false
+  },
+  "report_002": {
+    "id": "report_002",
+    "title": "Operação Cemitério Central",
+    "description": "Missão de reconhecimento no Cemitério Central após relatos de atividade paranormal intensa. A investigação revelou a presença de múltiplas entidades, sendo necessário solicitar reforços. Operação parcialmente concluída com contenção temporária.",
+    "missionDate": "2024-11-28",
+    "status": "partial",
+    "authorId": "user_003",
+    "authorName": "Ana Costa",
+    "createdAt": "2024-11-28T22:15:00Z",
+    "updatedAt": "2024-11-28T22:15:00Z",
+    "sharedWith": ["user_002"],
+    "isPublic": false
+  },
+  "report_003": {
+    "id": "report_003",
+    "title": "Incidente na Escola Municipal",
+    "description": "Resposta de emergência a incidente paranormal na Escola Municipal São José. Infelizmente, a entidade conseguiu escapar antes da neutralização completa, resultando em danos estruturais significativos ao prédio.",
+    "missionDate": "2024-11-25",
+    "status": "failed",
+    "authorId": "user_004",
+    "authorName": "Pedro Santos",
+    "createdAt": "2024-11-25T14:45:00Z",
+    "updatedAt": "2024-11-25T14:45:00Z",
+    "sharedWith": ["user_005"],
+    "isPublic": false
+  }
+}

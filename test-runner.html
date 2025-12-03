@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Tests - Simple Login Auth</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-results {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .test-pass {
+            color: green;
+            font-weight: bold;
+        }
+        .test-fail {
+            color: red;
+            font-weight: bold;
+        }
+        .test-running {
+            color: orange;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Property-Based Tests for User Data Validation</h1>
+    <div id="test-results"></div>
+    
+    <script src="scripts/data-loader.js"></script>
+    <script>
+        // Simple property-based testing framework
+        class SimplePropertyTest {
+            constructor() {
+                this.results = [];
+            }
+
+            // Generate random string
+            randomString(minLength = 1, maxLength = 20) {
+                const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_';
+                const length = Math.floor(Math.random() * (maxLength - minLength + 1)) + minLength;
+                let result = '';
+                for (let i = 0; i < length; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return result;
+            }
+
+            // Run property test
+            async runProperty(name, propertyFn, numRuns = 100) {
+                const resultsDiv = document.getElementById('test-results');
+                const testDiv = document.createElement('div');
+                testDiv.className = 'test-results';
+                testDiv.innerHTML = `<div class="test-running">Running: ${name}...</div>`;
+                resultsDiv.appendChild(testDiv);
+
+                try {
+                    for (let i = 0; i < numRuns; i++) {
+                        await propertyFn();
+                    }
+                    testDiv.innerHTML = `<div class="test-pass">✓ PASS: ${name} (${numRuns} runs)</div>`;
+                    this.results.push({ name, status: 'PASS' });
+                } catch (error) {
+                    testDiv.innerHTML = `<div class="test-fail">✗ FAIL: ${name}<br>Error: ${error.message}</div>`;
+                    this.results.push({ name, status: 'FAIL', error: error.message });
+                }
+            }
+        }
+
+        // Mock user data for testing
+        const mockUsersData = {
+            "bella_evans": {
+                "id": "user_001",
+                "username": "bella_evans",
+                "password": "sãocristovão2016",
+                "name": "Bella Evans",
+                "role": "agent",
+                "team": "team_alpha",
+                "createdAt": "2024-01-01T00:00:00Z"
+            },
+            "carlos_silva": {
+                "id": "user_002",
+                "username": "carlos_silva",
+                "password": "lider2024",
+                "name": "Carlos Silva",
+                "role": "leader",
+                "team": "team_alpha",
+                "createdAt": "2024-01-01T00:00:00Z"
+            }
+        };
+
+        // Mock fetch for testing
+        window.fetch = jest.fn ? jest.fn() : function(url) {
+            if (url.includes('users.json')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve(mockUsersData)
+                });
+            }
+            return Promise.reject(new Error('File not found'));
+        };
+
+        // Run the property tests
+        async function runTests() {
+            const tester = new SimplePropertyTest();
+            const dataLoader = new DataLoader();
+
+            /**
+             * Feature: simple-login-auth, Property 4: Database validation consistency
+             * Validates: Requirements 3.2
+             */
+
+            // Test 1: Valid credentials from database should authenticate
+            await tester.runProperty(
+                'Property 4a: Valid credentials authentication',
+                async () => {
+                    const usernames = Object.keys(mockUsersData);
+                    const username = usernames[Math.floor(Math.random() * usernames.length)];
+                    const user = mockUsersData[username];
+                    
+                    const result = await dataLoader.validateUserCredentials(username, user.password);
+                    
+                    if (!result) {
+                        throw new Error(`Valid credentials for ${username} should authenticate`);
+                    }
+                }
+            );
+
+            // Test 2: Invalid credentials should be rejected
+            await tester.runProperty(
+                'Property 4b: Invalid credentials rejection',
+                async () => {
+                    const username = tester.randomString();
+                    const password = tester.randomString();
+                    
+                    // Skip if this happens to be a valid combination
+                    if (mockUsersData[username] && mockUsersData[username].password === password) {
+                        return;
+                    }
+                    
+                    const result = await dataLoader.validateUserCredentials(username, password);
+                    
+                    if (result) {
+                        throw new Error(`Invalid credentials ${username}/${password} should be rejected`);
+                    }
+                }
+            );
+
+            // Test 3: getUserByUsername returns consistent data
+            await tester.runProperty(
+                'Property 4c: Consistent user data retrieval',
+                async () => {
+                    const usernames = Object.keys(mockUsersData);
+                    const username = usernames[Math.floor(Math.random() * usernames.length)];
+                    
+                    const user = await dataLoader.getUserByUsername(username);
+                    
+                    if (!user || user.username !== username) {
+                        throw new Error(`getUserByUsername should return consistent data for ${username}`);
+                    }
+                    
+                    if (JSON.stringify(user) !== JSON.stringify(mockUsersData[username])) {
+                        throw new Error(`User data should match database exactly for ${username}`);
+                    }
+                }
+            );
+
+            // Test 4: Non-existent users return null
+            await tester.runProperty(
+                'Property 4d: Non-existent users return null',
+                async () => {
+                    const username = tester.randomString();
+                    
+                    // Skip if this happens to be a valid username
+                    if (mockUsersData[username]) {
+                        return;
+                    }
+                    
+                    const user = await dataLoader.getUserByUsername(username);
+                    
+                    if (user !== null) {
+                        throw new Error(`Non-existent user ${username} should return null`);
+                    }
+                }
+            );
+
+            // Display summary
+            const resultsDiv = document.getElementById('test-results');
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'test-results';
+            
+            const passed = tester.results.filter(r => r.status === 'PASS').length;
+            const failed = tester.results.filter(r => r.status === 'FAIL').length;
+            
+            summaryDiv.innerHTML = `
+                <h3>Test Summary</h3>
+                <p><strong>Total Tests:</strong> ${tester.results.length}</p>
+                <p><strong>Passed:</strong> <span class="test-pass">${passed}</span></p>
+                <p><strong>Failed:</strong> <span class="test-fail">${failed}</span></p>
+            `;
+            
+            resultsDiv.appendChild(summaryDiv);
+        }
+
+        // Start tests when page loads
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html>

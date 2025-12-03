@@ -1,0 +1,47 @@
+{
+  "bella_evans": {
+    "id": "user_001",
+    "username": "bella_evans",
+    "password": "sãocristovão2016",
+    "name": "Bella Evans",
+    "role": "agent",
+    "team": "team_alpha",
+    "createdAt": "2024-01-01T00:00:00Z"
+  },
+  "carlos_silva": {
+    "id": "user_002",
+    "username": "carlos_silva",
+    "password": "lider2024",
+    "name": "Carlos Silva",
+    "role": "leader",
+    "team": "team_alpha",
+    "createdAt": "2024-01-01T00:00:00Z"
+  },
+  "ana_costa": {
+    "id": "user_003",
+    "username": "ana_costa",
+    "password": "agente123",
+    "name": "Ana Costa",
+    "role": "agent",
+    "team": "team_alpha",
+    "createdAt": "2024-01-01T00:00:00Z"
+  },
+  "pedro_santos": {
+    "id": "user_004",
+    "username": "pedro_santos",
+    "password": "paranormal456",
+    "name": "Pedro Santos",
+    "role": "agent",
+    "team": "team_beta",
+    "createdAt": "2024-01-01T00:00:00Z"
+  },
+  "maria_oliveira": {
+    "id": "user_005",
+    "username": "maria_oliveira",
+    "password": "lider789",
+    "name": "Maria Oliveira",
+    "role": "leader",
+    "team": "team_beta",
+    "createdAt": "2024-01-01T00:00:00Z"
+  }
+}

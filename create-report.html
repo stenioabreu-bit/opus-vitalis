@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordem Paranormal - Criar Relatório</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style>
+        .page-header {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .form-container {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <h1 style="color: var(--accent-blue); margin-bottom: 5px;">Criar Relatório</h1>
+                <p style="color: var(--text-secondary);">Documente sua missão paranormal</p>
+            </div>
+            
+            <a href="dashboard.html" class="btn btn-secondary">Voltar ao Dashboard</a>
+        </div>
+        
+        <div id="message-container"></div>
+        
+        <div class="form-container">
+            <form id="report-form">
+                <div class="form-group">
+                    <label for="title">Título da Missão:</label>
+                    <input type="text" id="title" name="title" required 
+                           placeholder="Ex: Investigação Paranormal - Casa Abandonada">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Descrição Detalhada:</label>
+                    <textarea id="description" name="description" required 
+                              placeholder="Descreva detalhadamente os eventos, descobertas e conclusões da missão..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="mission-date">Data da Missão:</label>
+                    <input type="date" id="mission-date" name="missionDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="status">Status da Missão:</label>
+                    <select id="status" name="status" required>
+                        <option value="">Selecione o status</option>
+                        <option value="completed">Concluída com Sucesso</option>
+                        <option value="failed">Falhou</option>
+                        <option value="partial">Parcialmente Concluída</option>
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" id="save-btn" class="btn btn-primary">
+                        Salvar Relatório
+                    </button>
+                    <button type="button" id="cancel-btn" class="btn btn-secondary">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/reports.js"></script>
+    <script>
+        // Initialize create report page functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const authService = new AuthService();
+            const reportsService = new ReportsService();
+            
+            // Check authentication
+            if (!authService.checkSession()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const reportForm = document.getElementById('report-form');
+            const cancelBtn = document.getElementById('cancel-btn');
+            
+            // Set default date to today
+            document.getElementById('mission-date').valueAsDate = new Date();
+            
+            // Handle form submission
+            reportForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(reportForm);
+                const reportData = {
+                    title: formData.get('title').trim(),
+                    description: formData.get('description').trim(),
+                    missionDate: formData.get('missionDate'),
+                    status: formData.get('status')
+                };
+                
+                // Validate form data
+                if (!reportData.title || !reportData.description || !reportData.missionDate || !reportData.status) {
+                    Utils.showMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
+                    return;
+                }
+                
+                // Show loading state
+                Utils.showLoading('save-btn');
+                
+                try {
+                    const result = await reportsService.createReport(reportData);
+                    
+                    if (result.success) {
+                        Utils.showMessage('Relatório criado com sucesso!', 'success');
+                        setTimeout(() => {
+                            window.location.href = 'reports.html';
+                        }, 1500);
+                    } else {
+                        Utils.showMessage(result.message, 'error');
+                    }
+                } catch (error) {
+                    Utils.showMessage('Erro ao criar relatório. Tente novamente.', 'error');
+                    console.error('Create report error:', error);
+                } finally {
+                    Utils.hideLoading('save-btn', 'Salvar Relatório');
+                }
+            });
+            
+            // Handle cancel button
+            cancelBtn.addEventListener('click', function() {
+                if (confirm('Tem certeza que deseja cancelar? Todas as alterações serão perdidas.')) {
+                    window.location.href = 'dashboard.html';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

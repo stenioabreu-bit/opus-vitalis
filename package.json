@@ -1,0 +1,19 @@
+{
+  "name": "simple-login-auth",
+  "version": "1.0.0",
+  "description": "Sistema de autenticação e relatórios com tema Ordem Paranormal",
+  "main": "index.html",
+  "scripts": {
+    "test": "jest --run",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "fast-check": "^3.15.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": ["<rootDir>/test-setup.js"]
+  }
+}

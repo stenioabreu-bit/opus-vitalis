@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordem Paranormal - Login</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <div class="centered-container">
+        <div class="form-container">
+            <div class="text-center mb-2">
+                <h1 style="color: var(--accent-blue); margin-bottom: 10px;">ORDEM PARANORMAL</h1>
+                <p style="color: var(--text-secondary);">Sistema de Autenticação</p>
+            </div>
+            
+            <div id="message-container"></div>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Usuário:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Senha:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <div class="form-group text-center">
+                    <button type="submit" id="login-btn" class="btn btn-primary">
+                        Entrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script>
+        // Initialize login page functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const authService = new AuthService();
+            const loginForm = document.getElementById('login-form');
+            
+            // Check if user is already logged in
+            if (authService.checkSession()) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            
+            // Handle form submission
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+                
+                if (!username || !password) {
+                    Utils.showMessage('Por favor, preencha todos os campos.', 'error');
+                    return;
+                }
+                
+                // Show loading state
+                Utils.showLoading('login-btn');
+                
+                try {
+                    const result = await authService.handleLogin(username, password);
+                    
+                    if (result.success) {
+                        Utils.showMessage('Login realizado com sucesso!', 'success');
+                        setTimeout(() => {
+                            window.location.href = 'dashboard.html';
+                        }, 1000);
+                    } else {
+                        Utils.showMessage(result.message, 'error');
+                        // Clear password field on failure
+                        document.getElementById('password').value = '';
+                    }
+                } catch (error) {
+                    Utils.showMessage('Erro interno do sistema. Tente novamente.', 'error');
+                    console.error('Login error:', error);
+                } finally {
+                    Utils.hideLoading('login-btn', 'Entrar');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

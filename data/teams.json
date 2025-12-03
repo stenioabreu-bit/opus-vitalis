@@ -1,0 +1,16 @@
+{
+  "team_alpha": {
+    "id": "team_alpha",
+    "name": "Equipe Alpha",
+    "leaderId": "user_002",
+    "members": ["user_001", "user_003"],
+    "createdAt": "2024-01-01T00:00:00Z"
+  },
+  "team_beta": {
+    "id": "team_beta",
+    "name": "Equipe Beta",
+    "leaderId": "user_005",
+    "members": ["user_004"],
+    "createdAt": "2024-01-01T00:00:00Z"
+  }
+}

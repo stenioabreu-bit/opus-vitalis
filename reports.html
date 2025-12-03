@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordem Paranormal - Meus Relatórios</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style>
+        .page-header {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .report-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .report-card:hover {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+        
+        .report-title {
+            color: var(--accent-blue);
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .report-meta {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        
+        .report-description {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .report-actions .btn {
+            font-size: 0.9em;
+            padding: 8px 16px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-completed {
+            background: rgba(74, 124, 89, 0.3);
+            color: var(--success-green);
+        }
+        
+        .status-failed {
+            background: rgba(204, 0, 0, 0.3);
+            color: var(--error-red);
+        }
+        
+        .status-partial {
+            background: rgba(0, 212, 255, 0.3);
+            color: var(--accent-blue);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state h3 {
+            color: var(--accent-blue);
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <h1 style="color: var(--accent-blue); margin-bottom: 5px;">Meus Relatórios</h1>
+                <p style="color: var(--text-secondary);">Histórico de missões documentadas</p>
+            </div>
+            
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <a href="create-report.html" class="btn btn-primary">Novo Relatório</a>
+                <a href="dashboard.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+        
+        <div id="message-container"></div>
+        
+        <div id="reports-container">
+            <div class="empty-state">
+                <h3>Nenhum relatório encontrado</h3>
+                <p>Você ainda não criou nenhum relatório de missão.</p>
+                <p>Clique em "Novo Relatório" para começar a documentar suas investigações paranormais.</p>
+                <div style="margin-top: 20px;">
+                    <a href="create-report.html" class="btn btn-primary">Criar Primeiro Relatório</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/reports.js"></script>
+    <script>
+        // Initialize reports page functionality
+        document.addEventListener('DOMContentLoaded', async function() {
+            const authService = new AuthService();
+            const reportsService = new ReportsService();
+            
+            // Check authentication
+            if (!authService.checkSession()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const currentUser = authService.getCurrentUser();
+            const reportsContainer = document.getElementById('reports-container');
+            
+            // Load user reports
+            try {
+                const reports = await reportsService.loadReports(currentUser.id);
+                
+                if (reports && reports.length > 0) {
+                    displayReports(reports);
+                }
+                // Empty state is already shown by default
+                
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                Utils.showMessage('Erro ao carregar relatórios.', 'error');
+            }
+            
+            // Function to display reports
+            function displayReports(reports) {
+                const reportsGrid = document.createElement('div');
+                reportsGrid.className = 'reports-grid';
+                
+                reports.forEach(report => {
+                    const reportCard = createReportCard(report);
+                    reportsGrid.appendChild(reportCard);
+                });
+                
+                reportsContainer.innerHTML = '';
+                reportsContainer.appendChild(reportsGrid);
+            }
+            
+            // Function to create report card
+            function createReportCard(report) {
+                const card = document.createElement('div');
+                card.className = 'report-card';
+                
+                const statusClass = `status-${report.status}`;
+                const statusText = {
+                    'completed': 'Concluída',
+                    'failed': 'Falhou',
+                    'partial': 'Parcial'
+                }[report.status] || report.status;
+                
+                card.innerHTML = `
+                    <div class="report-title">${Utils.sanitizeHtml(report.title)}</div>
+                    <div class="report-meta">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                        <span style="margin-left: 10px;">${Utils.formatDate(report.missionDate)}</span>
+                    </div>
+                    <div class="report-description">${Utils.sanitizeHtml(report.description)}</div>
+                    <div class="report-actions">
+                        <button class="btn btn-primary" onclick="viewReport('${report.id}')">Ver Detalhes</button>
+                        <button class="btn btn-secondary" onclick="shareReport('${report.id}')">Compartilhar</button>
+                        <button class="btn btn-danger" onclick="deleteReport('${report.id}')">Excluir</button>
+                    </div>
+                `;
+                
+                return card;
+            }
+            
+            // Global functions for report actions (placeholders)
+            window.viewReport = function(reportId) {
+                window.location.href = `view-report.html?id=${reportId}`;
+            };
+            
+            window.shareReport = function(reportId) {
+                Utils.showMessage('Funcionalidade de compartilhamento será implementada em breve.', 'info');
+            };
+            
+            window.deleteReport = function(reportId) {
+                if (confirm('Tem certeza que deseja excluir este relatório? Esta ação não pode ser desfeita.')) {
+                    Utils.showMessage('Funcionalidade de exclusão será implementada em breve.', 'info');
+                }
+            };
+        });
+    </script>
+</body>
+</html>

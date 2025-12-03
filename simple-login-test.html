@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Login Simples</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #000;
+            color: #fff;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .login-container {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            min-width: 300px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            color: #fff;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #00d4ff;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: rgba(74, 124, 89, 0.3); color: #4a7c59; }
+        .error { background: rgba(204, 0, 0, 0.3); color: #cc0000; }
+        .log {
+            background: #0a0a0a;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2 style="text-align: center; color: #00d4ff;">Teste Login</h2>
+        
+        <div id="log" class="log"></div>
+        
+        <form id="login-form">
+            <input type="text" id="username" placeholder="Usuário" value="bella_evans">
+            <input type="password" id="password" placeholder="Senha" value="sãocristovão2016">
+            <button type="submit">Entrar</button>
+        </form>
+        
+        <div id="message"></div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `${time}: ${message}<br>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function showMessage(message, type = 'info') {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="message ${type}">${message}</div>`;
+        }
+
+        // Simple authentication test
+        async function testLogin(username, password) {
+            log(`Iniciando teste de login para: ${username}`);
+            
+            try {
+                // Test direct fetch
+                log('Testando fetch direto...');
+                const response = await fetch('data/users.json');
+                log(`Fetch response: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const users = await response.json();
+                log(`Usuários carregados: ${Object.keys(users).length}`);
+                
+                // Test authentication
+                if (users[username]) {
+                    log(`Usuário ${username} encontrado`);
+                    if (users[username].password === password) {
+                        log('Senha correta!');
+                        showMessage('Login realizado com sucesso!', 'success');
+                        
+                        // Save session
+                        localStorage.setItem('ordem_paranormal_session', JSON.stringify(users[username]));
+                        log('Sessão salva no localStorage');
+                        
+                        // Redirect after delay
+                        setTimeout(() => {
+                            log('Redirecionando para dashboard...');
+                            window.location.href = 'dashboard.html';
+                        }, 2000);
+                        
+                        return true;
+                    } else {
+                        log('Senha incorreta');
+                        showMessage('Senha incorreta', 'error');
+                        return false;
+                    }
+                } else {
+                    log('Usuário não encontrado');
+                    showMessage('Usuário não encontrado', 'error');
+                    return false;
+                }
+                
+            } catch (error) {
+                log(`Erro: ${error.message}`);
+                showMessage(`Erro: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Página carregada');
+            
+            // Check existing session
+            const session = localStorage.getItem('ordem_paranormal_session');
+            if (session) {
+                log('Sessão existente encontrada');
+                try {
+                    const user = JSON.parse(session);
+                    log(`Usuário logado: ${user.name}`);
+                    showMessage(`Já logado como ${user.name}`, 'success');
+                } catch (e) {
+                    log('Sessão inválida, removendo...');
+                    localStorage.removeItem('ordem_paranormal_session');
+                }
+            }
+            
+            const form = document.getElementById('login-form');
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                log('Formulário enviado');
+                
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+                
+                if (!username || !password) {
+                    log('Campos vazios');
+                    showMessage('Preencha todos os campos', 'error');
+                    return;
+                }
+                
+                await testLogin(username, password);
+            });
+            
+            log('Event listeners configurados');
+        });
+    </script>
+</body>
+</html>
