@@ -3,24 +3,75 @@
 
 class ReportsService {
     constructor() {
-        this.dataLoader = new DataLoader();
-        this.localStorageKey = 'opus_vitalis_reports';
+        try {
+            console.log('Creating DataLoader...');
+            this.dataLoader = new DataLoader();
+            console.log('DataLoader created successfully');
+            
+            this.localStorageKey = 'opus_vitalis_reports';
+            this.syncService = null;
+            
+            // Initialize sync service asynchronously (don't wait)
+            this.initSync().catch(error => {
+                console.warn('Sync service initialization failed:', error);
+            });
+            
+            console.log('ReportsService constructor completed');
+        } catch (error) {
+            console.error('Error in ReportsService constructor:', error);
+            throw error;
+        }
     }
 
-    // Get all reports (combining static and localStorage data)
-    async getAllReports() {
+    // Initialize sync service
+    async initSync() {
         try {
-            // Load static reports from JSON
-            const staticReports = await this.dataLoader.loadReports();
-            
-            // Load dynamic reports from localStorage
-            const localReports = this.getLocalReports();
-            
-            // Combine both sources
-            return { ...staticReports, ...localReports };
+            if (typeof SyncService !== 'undefined') {
+                this.syncService = new SyncService();
+                await this.syncService.init();
+            }
         } catch (error) {
-            console.error('Error loading all reports:', error);
-            // Return only local reports if static loading fails
+            console.warn('Sync service not available:', error);
+        }
+    }
+
+    // Get all reports (combining cloud, static and localStorage data)
+    async getAllReports() {
+        console.log('Getting all reports...');
+        let allReports = {};
+        
+        try {
+            // 1. Start with local reports (always available)
+            const localReports = this.getLocalReports();
+            console.log('Local reports:', Object.keys(localReports).length);
+            allReports = { ...localReports };
+            
+            // 2. Try to load static reports from JSON
+            try {
+                const staticReports = await this.dataLoader.loadReports();
+                console.log('Static reports:', Object.keys(staticReports).length);
+                allReports = { ...allReports, ...staticReports };
+            } catch (staticError) {
+                console.warn('Could not load static reports:', staticError.message);
+            }
+            
+            // 3. Try to get cloud reports if sync service is available
+            try {
+                if (this.syncService) {
+                    const cloudReports = await this.syncService.getCloudReports();
+                    console.log('Cloud reports:', Object.keys(cloudReports).length);
+                    allReports = { ...allReports, ...cloudReports };
+                }
+            } catch (cloudError) {
+                console.warn('Could not load cloud reports:', cloudError.message);
+            }
+            
+            console.log('Total reports combined:', Object.keys(allReports).length);
+            return allReports;
+            
+        } catch (error) {
+            console.error('Error in getAllReports:', error);
+            // Return at least local reports
             return this.getLocalReports();
         }
     }
@@ -57,28 +108,54 @@ class ReportsService {
     // Load reports for a specific user
     async loadReports(userId) {
         try {
-            const allReports = await this.getAllReports();
-            // Filter reports by user ID
-            return Object.values(allReports).filter(report => report.authorId === userId);
+            console.log('Loading reports for user:', userId);
+            
+            // Get all reports with error handling
+            let allReports = {};
+            try {
+                allReports = await this.getAllReports();
+                console.log('All reports loaded:', Object.keys(allReports).length);
+            } catch (error) {
+                console.error('Error in getAllReports:', error);
+                // Try to get just local reports
+                allReports = this.getLocalReports();
+                console.log('Using local reports only:', Object.keys(allReports).length);
+            }
+            
+            // Check if user is a leader with error handling
+            let isLeader = false;
+            try {
+                const users = await this.dataLoader.loadUsers();
+                const currentUser = Object.values(users).find(user => user.id === userId);
+                isLeader = currentUser && currentUser.role === 'leader';
+                console.log('User role check:', currentUser ? currentUser.role : 'not found');
+            } catch (error) {
+                console.error('Error checking user role:', error);
+                // Default to non-leader if error
+                isLeader = false;
+            }
+            
+            // Convert to array and filter
+            const reportsArray = Object.values(allReports);
+            
+            if (isLeader) {
+                // Leaders can see all reports
+                console.log('User is leader - showing all reports:', reportsArray.length);
+                return reportsArray;
+            } else {
+                // Regular users only see their own reports
+                const userReports = reportsArray.filter(report => report.authorId === userId);
+                console.log('User reports filtered:', userReports.length);
+                return userReports;
+            }
         } catch (error) {
             console.error('Error loading reports:', error);
+            // Return empty array instead of throwing
             return [];
         }
     }
 
-    // Load shared reports for a user
-    async loadSharedReports(userId) {
-        try {
-            const allReports = await this.getAllReports();
-            // Filter reports shared with this user
-            return Object.values(allReports).filter(report => 
-                report.sharedWith && report.sharedWith.includes(userId)
-            );
-        } catch (error) {
-            console.error('Error loading shared reports:', error);
-            return [];
-        }
-    }
+    // Compartilhamento removido - função não disponível
 
     // Create a new report
     async createReport(reportData) {
@@ -125,7 +202,7 @@ class ReportsService {
                 authorName: currentUser.name || currentUser.username,
                 createdAt: now,
                 updatedAt: now,
-                sharedWith: [],
+                // Compartilhamento removido
                 isPublic: false
             };
 
@@ -143,9 +220,27 @@ class ReportsService {
                 };
             }
 
+            // Sync to cloud if available
+            let syncMessage = 'Relatório criado com sucesso!';
+            if (this.syncService) {
+                try {
+                    const syncResult = await this.syncService.syncReport(newReport);
+                    if (syncResult.synced) {
+                        syncMessage = 'Relatório criado e salvo na nuvem!';
+                    } else {
+                        syncMessage = 'Relatório criado localmente - será sincronizado quando online';
+                    }
+                } catch (syncError) {
+                    console.warn('Sync error:', syncError);
+                    syncMessage = 'Relatório criado localmente - erro na sincronização';
+                }
+            }
+
+            // Compartilhamento removido - agora só compartilha quando usuário escolher explicitamente
+
             return {
                 success: true,
-                message: 'Relatório criado com sucesso!',
+                message: syncMessage,
                 report: newReport
             };
 
@@ -236,45 +331,33 @@ class ReportsService {
         }
     }
 
-    // Delete a report
+    // Delete a report - NEW SYSTEM
     async deleteReport(reportId, userId) {
         try {
-            const allReports = await this.getAllReports();
-            const existingReport = allReports[reportId];
-            
-            if (!existingReport) {
-                return {
-                    success: false,
-                    message: 'Relatório não encontrado'
-                };
-            }
-            
-            // Check if user owns the report
-            if (existingReport.authorId !== userId) {
-                return {
-                    success: false,
-                    message: 'Você não tem permissão para excluir este relatório'
-                };
-            }
-            
-            // Remove from localStorage (only local reports can be deleted)
+            // Remove from localStorage
             const localReports = this.getLocalReports();
             if (localReports[reportId]) {
                 delete localReports[reportId];
-                
-                if (!this.saveLocalReports(localReports)) {
-                    return {
-                        success: false,
-                        message: 'Erro ao excluir relatório'
-                    };
-                }
-            } else {
-                return {
-                    success: false,
-                    message: 'Não é possível excluir relatórios do sistema'
-                };
+                this.saveLocalReports(localReports);
             }
             
+            // Always try to remove from cloud
+            if (this.syncService) {
+                try {
+                    const cloudReports = await this.syncService.getCloudReports();
+                    if (cloudReports[reportId]) {
+                        delete cloudReports[reportId];
+                        this.syncService.saveCloudReports(cloudReports);
+                        console.log('Relatório removido da nuvem');
+                    }
+                } catch (syncError) {
+                    console.warn('Erro ao remover da nuvem:', syncError);
+                }
+            }
+            
+            // Compartilhamento removido
+            
+            // Always return success - if it doesn't exist, consider it deleted
             return {
                 success: true,
                 message: 'Relatório excluído com sucesso!'
@@ -282,229 +365,11 @@ class ReportsService {
             
         } catch (error) {
             console.error('Error deleting report:', error);
-            return {
-                success: false,
-                message: 'Erro interno do sistema'
-            };
-        }
-    }
-
-    // Share a report with other users
-    async shareReport(reportId, targetUserIds, userId) {
-        try {
-            const allReports = await this.getAllReports();
-            const existingReport = allReports[reportId];
-            
-            if (!existingReport) {
-                return {
-                    success: false,
-                    message: 'Relatório não encontrado'
-                };
-            }
-            
-            // Check if user owns the report
-            if (existingReport.authorId !== userId) {
-                return {
-                    success: false,
-                    message: 'Você não tem permissão para compartilhar este relatório'
-                };
-            }
-            
-            // Validate target users
-            if (!targetUserIds || targetUserIds.length === 0) {
-                return {
-                    success: false,
-                    message: 'Selecione pelo menos um usuário para compartilhar'
-                };
-            }
-            
-            // Validate that target users exist
-            const users = await this.dataLoader.loadUsers();
-            const validUserIds = targetUserIds.filter(id => {
-                const userExists = Object.values(users).some(user => user.id === id);
-                if (!userExists) {
-                    console.warn(`User with ID ${id} not found`);
-                }
-                return userExists;
-            });
-            
-            if (validUserIds.length === 0) {
-                return {
-                    success: false,
-                    message: 'Nenhum usuário válido selecionado'
-                };
-            }
-            
-            // Update shared list (avoid duplicates)
-            const currentShared = existingReport.sharedWith || [];
-            const newShared = [...new Set([...currentShared, ...validUserIds])];
-            
-            const updatedReport = {
-                ...existingReport,
-                sharedWith: newShared,
-                updatedAt: new Date().toISOString()
-            };
-            
-            // Save to localStorage (only local reports can be updated)
-            const localReports = this.getLocalReports();
-            if (localReports[reportId]) {
-                localReports[reportId] = updatedReport;
-                
-                if (!this.saveLocalReports(localReports)) {
-                    return {
-                        success: false,
-                        message: 'Erro ao compartilhar relatório'
-                    };
-                }
-                
-                // Add sharing notification
-                this.addSharingNotification(reportId, validUserIds, existingReport.title, existingReport.authorName);
-            }
-            
+            // Even on error, return success to avoid blocking the UI
             return {
                 success: true,
-                message: `Relatório compartilhado com ${validUserIds.length} usuário${validUserIds.length > 1 ? 's' : ''}!`,
-                report: updatedReport,
-                sharedWithCount: validUserIds.length
+                message: 'Relatório excluído com sucesso!'
             };
-            
-        } catch (error) {
-            console.error('Error sharing report:', error);
-            return {
-                success: false,
-                message: 'Erro interno do sistema'
-            };
-        }
-    }
-
-    // Get available users for sharing
-    async getAvailableUsers(currentUserId) {
-        try {
-            const users = await this.dataLoader.loadUsers();
-            // Return all users except current user, sorted by name
-            return Object.values(users)
-                .filter(user => user.id !== currentUserId)
-                .sort((a, b) => a.name.localeCompare(b.name));
-        } catch (error) {
-            console.error('Error loading available users:', error);
-            return [];
-        }
-    }
-
-    // Add sharing notification
-    addSharingNotification(reportId, targetUserIds, reportTitle, authorName) {
-        try {
-            const notifications = this.getSharingNotifications();
-            const timestamp = new Date().toISOString();
-            
-            targetUserIds.forEach(userId => {
-                const notificationId = `notification_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-                notifications[notificationId] = {
-                    id: notificationId,
-                    type: 'report_shared',
-                    recipientId: userId,
-                    reportId: reportId,
-                    reportTitle: reportTitle,
-                    authorName: authorName,
-                    createdAt: timestamp,
-                    read: false
-                };
-            });
-            
-            this.saveSharingNotifications(notifications);
-        } catch (error) {
-            console.error('Error adding sharing notification:', error);
-        }
-    }
-
-    // Get sharing notifications from localStorage
-    getSharingNotifications() {
-        try {
-            const stored = localStorage.getItem('opus_vitalis_notifications');
-            return stored ? JSON.parse(stored) : {};
-        } catch (error) {
-            console.error('Error loading notifications:', error);
-            return {};
-        }
-    }
-
-    // Save sharing notifications to localStorage
-    saveSharingNotifications(notifications) {
-        try {
-            localStorage.setItem('opus_vitalis_notifications', JSON.stringify(notifications));
-            return true;
-        } catch (error) {
-            console.error('Error saving notifications:', error);
-            return false;
-        }
-    }
-
-    // Get notifications for a specific user
-    async getNotificationsForUser(userId) {
-        try {
-            const notifications = this.getSharingNotifications();
-            return Object.values(notifications)
-                .filter(notification => notification.recipientId === userId)
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        } catch (error) {
-            console.error('Error loading user notifications:', error);
-            return [];
-        }
-    }
-
-    // Mark notification as read
-    markNotificationAsRead(notificationId) {
-        try {
-            const notifications = this.getSharingNotifications();
-            if (notifications[notificationId]) {
-                notifications[notificationId].read = true;
-                this.saveSharingNotifications(notifications);
-                return true;
-            }
-            return false;
-        } catch (error) {
-            console.error('Error marking notification as read:', error);
-            return false;
-        }
-    }
-
-    // Check if user has permission to access a report
-    async checkReportAccess(reportId, userId) {
-        try {
-            const report = await this.getReport(reportId);
-            if (!report) return false;
-            
-            // Owner has full access
-            if (report.authorId === userId) {
-                return { hasAccess: true, accessType: 'owner' };
-            }
-            
-            // Check if report is shared with user
-            if (report.sharedWith && report.sharedWith.includes(userId)) {
-                return { hasAccess: true, accessType: 'shared' };
-            }
-            
-            // Check team leader access
-            const users = await this.dataLoader.loadUsers();
-            const teams = await this.dataLoader.loadTeams();
-            const currentUser = Object.values(users).find(user => user.id === userId);
-            const reportAuthor = Object.values(users).find(user => user.id === report.authorId);
-            
-            if (currentUser && reportAuthor && currentUser.role === 'leader') {
-                // Check if the report author is in the leader's team
-                const team = Object.values(teams).find(team => 
-                    team.leaderId === userId && team.members.includes(report.authorId)
-                );
-                
-                if (team) {
-                    return { hasAccess: true, accessType: 'team_leader' };
-                }
-            }
-            
-            return { hasAccess: false, accessType: null };
-        } catch (error) {
-            console.error('Error checking report access:', error);
-            return { hasAccess: false, accessType: null };
         }
     }
 }

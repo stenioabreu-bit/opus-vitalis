@@ -50,30 +50,26 @@
         }
         
         .stat-number {
-            font-size: 2em;
+            font-size: 2.5em;
+            font-weight: 700;
             color: var(--accent-crimson);
-            font-weight: bold;
-            margin-bottom: 10px;
+            margin: 10px 0;
             font-family: 'Orbitron', monospace;
-            text-shadow: 0 0 5px var(--crimson-glow);
-        }
-        
-        .recent-activity {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
         }
         
         @media (max-width: 768px) {
             .dashboard-header {
                 flex-direction: column;
-                gap: 20px;
+                gap: 15px;
                 text-align: center;
             }
             
             .nav-menu {
                 justify-content: center;
+            }
+            
+            .quick-stats {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -82,318 +78,68 @@
     <div class="container">
         <div class="dashboard-header">
             <div class="welcome-message">
-                <h2>Bem-vindo, <span id="user-name">Agente</span></h2>
-                <p style="color: var(--text-secondary);">Central de Comando - Opus Vitalis</p>
+                <h2>Bem-vindo, <span id="user-name">Usuário</span></h2>
+                <p style="color: var(--text-secondary); margin: 5px 0 0 0;">
+                    Central de Comando - Opus Vitalis
+                </p>
             </div>
             
             <div class="nav-menu" id="nav-menu">
                 <a href="create-report.html" class="btn btn-primary">
-                    <svg class="icon"><use href="#icon-create"></use></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10,9 9,9 8,9"/>
+                    </svg>
                     Criar Relatório
                 </a>
                 <a href="reports.html" class="btn btn-secondary">
-                    <svg class="icon"><use href="#icon-report"></use></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <line x1="12" y1="9" x2="8" y2="9"/>
+                    </svg>
                     Meus Relatórios
                 </a>
-                <a href="shared-reports.html" class="btn btn-secondary">
-                    <svg class="icon"><use href="#icon-share"></use></svg>
-                    Relatórios Compartilhados
-                </a>
-                <a href="team-reports.html" class="btn btn-secondary" id="team-reports-link" style="display: none;">
-                    <svg class="icon"><use href="#icon-team"></use></svg>
-                    Relatórios da Equipe
-                </a>
+                <!-- Compartilhamento removido -->
                 <button id="logout-btn" class="btn btn-danger">
-                    <svg class="icon"><use href="#icon-logout"></use></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16,17 21,12 16,7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
                     Sair
                 </button>
             </div>
         </div>
-        
-        <div id="message-container"></div>
-        
-        <div class="quick-stats">
-            <div class="stat-card">
-                <div class="stat-number" id="total-reports">0</div>
-                <div>Relatórios Criados</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-number" id="shared-reports">0</div>
-                <div>Relatórios Compartilhados</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-number" id="team-reports">0</div>
-                <div>Relatórios da Equipe</div>
-            </div>
-        </div>
-        
-        <div class="recent-activity">
-            <h3 style="color: var(--accent-crimson); margin-bottom: 20px; font-family: 'Orbitron', monospace; text-shadow: 0 0 5px var(--crimson-glow);">
-                <svg class="icon icon-large"><use href="#icon-dashboard"></use></svg>
-                Atividade Recente
-            </h3>
-            <div id="recent-activity-list">
-                <p style="color: var(--text-secondary); text-align: center;">
-                    Nenhuma atividade recente encontrada.
-                </p>
-            </div>
-        </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="scripts/migration.js"></script>
-    <script src="scripts/icons.js"></script>
-    <script src="scripts/utils.js"></script>
-    <script src="scripts/data-loader.js"></script>
-    <script src="scripts/auth.js"></script>
-    <script src="scripts/session-guard.js"></script>
-    <script src="scripts/reports.js"></script>
-    <script src="scripts/teams.js"></script>
+    <script src="scripts/simple-auth.js"></script>
     <script>
-        // Dashboard functionality class
-        class DashboardController {
-            constructor() {
-                this.authService = new AuthService();
-                this.reportsService = new ReportsService();
-                this.teamsService = new TeamsService();
-                this.currentUser = null;
-            }
-
-            // Initialize dashboard
-            async init() {
-                // Check authentication and redirect if not logged in
-                if (!this.authService.checkSession()) {
-                    this.redirectToLogin();
-                    return;
-                }
-
-                this.currentUser = this.authService.getCurrentUser();
-                if (!this.currentUser) {
-                    this.redirectToLogin();
-                    return;
-                }
-
-                // Setup UI
-                this.setupUserInterface();
-                this.setupNavigationHandlers();
-                this.setupLogoutHandler();
+        // Verificar se está logado
+        if (!SimpleAuth.isLoggedIn()) {
+            window.location.href = 'login.html';
+        } else {
+            const currentUser = SimpleAuth.getCurrentUser();
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                // Mostrar nome do usuário
+                document.getElementById('user-name').textContent = currentUser.name || currentUser.username;
                 
-                // Load dashboard data
-                await this.loadDashboardData();
-            }
-
-            // Redirect to login page
-            redirectToLogin() {
-                window.location.href = 'login.html';
-            }
-
-            // Setup user interface elements
-            setupUserInterface() {
-                const userNameElement = document.getElementById('user-name');
-                if (userNameElement && this.currentUser) {
-                    userNameElement.textContent = this.currentUser.name || this.currentUser.username;
-                }
-                
-                // Show team reports link only for leaders
-                const teamReportsLink = document.getElementById('team-reports-link');
-                if (teamReportsLink && this.currentUser && this.currentUser.role === 'leader') {
-                    teamReportsLink.style.display = 'inline-block';
-                }
-            }
-
-            // Setup navigation handlers for page routing
-            setupNavigationHandlers() {
-                // Navigation links are already set up as anchor tags in HTML
-                // They will handle routing automatically
-                
-                // Add click handlers for any additional navigation logic if needed
-                const navLinks = document.querySelectorAll('.nav-menu a');
-                navLinks.forEach(link => {
-                    link.addEventListener('click', (e) => {
-                        // Add any pre-navigation logic here if needed
-                        console.log('Navigating to:', link.href);
-                    });
-                });
-            }
-
-            // Setup logout functionality
-            setupLogoutHandler() {
-                const logoutBtn = document.getElementById('logout-btn');
-                if (logoutBtn) {
-                    console.log('Logout button found, setting up handler');
-                    logoutBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        console.log('Logout button clicked');
-                        this.handleLogout();
-                    });
-                } else {
-                    console.error('Logout button not found!');
-                }
-            }
-
-            // Handle logout with confirmation
-            handleLogout() {
-                console.log('handleLogout called');
-                if (confirm('Tem certeza que deseja sair?')) {
-                    console.log('User confirmed logout');
-                    try {
-                        // Clear current user first
-                        this.currentUser = null;
-                        
-                        // Call auth service logout
-                        this.authService.handleLogout();
-                        
-                        console.log('Logout completed successfully');
-                    } catch (error) {
-                        console.error('Error during logout:', error);
-                        Utils.showMessage('Erro ao fazer logout. Redirecionando...', 'error');
-                        
-                        // Force clear session and redirect even if logout fails
-                        try {
-                            localStorage.removeItem('opus_vitalis_session');
-                            this.currentUser = null;
-                        } catch (clearError) {
-                            console.error('Error clearing session:', clearError);
-                        }
-                        
-                        setTimeout(() => {
-                            window.location.href = 'login.html';
-                        }, 2000);
-                    }
-                } else {
-                    console.log('User cancelled logout');
-                }
-            }
-
-            // Load and display dashboard data
-            async loadDashboardData() {
-                try {
-                    // Show loading state
-                    this.showLoadingStats();
-
-                    // Load data from services
-                    // Load user and shared reports
-                    const [userReports, sharedReports] = await Promise.all([
-                        this.reportsService.loadReports(this.currentUser.id),
-                        this.reportsService.loadSharedReports(this.currentUser.id)
-                    ]);
-                    
-                    // Load team reports only for leaders
-                    let teamReports = [];
-                    if (this.currentUser.role === 'leader') {
-                        const teamResult = await this.teamsService.getTeamReports(this.currentUser.id);
-                        teamReports = teamResult.success ? teamResult.reports : [];
-                    }
-
-                    // Update statistics
-                    this.updateStats(userReports, sharedReports, teamReports);
-                    
-                    // Update recent activity
-                    this.updateRecentActivity(userReports, sharedReports);
-
-                } catch (error) {
-                    console.error('Error loading dashboard data:', error);
-                    Utils.showMessage('Erro ao carregar dados do dashboard.', 'error');
-                    
-                    // Set default values on error
-                    this.updateStats([], [], []);
-                }
-            }
-
-            // Show loading state for statistics
-            showLoadingStats() {
-                const statElements = ['total-reports', 'shared-reports', 'team-reports'];
-                statElements.forEach(id => {
-                    const element = document.getElementById(id);
-                    if (element) {
-                        element.innerHTML = '<span class="loading"></span>';
+                // Configurar botão de logout
+                document.getElementById('logout-btn').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (confirm('Tem certeza que deseja sair?')) {
+                        SimpleAuth.logout();
+                        window.location.href = 'login.html';
                     }
                 });
-            }
-
-            // Update dashboard statistics
-            updateStats(userReports, sharedReports, teamReports) {
-                const totalReportsElement = document.getElementById('total-reports');
-                const sharedReportsElement = document.getElementById('shared-reports');
-                const teamReportsElement = document.getElementById('team-reports');
-
-                if (totalReportsElement) {
-                    totalReportsElement.textContent = userReports.length.toString();
-                }
-                
-                if (sharedReportsElement) {
-                    sharedReportsElement.textContent = sharedReports.length.toString();
-                }
-                
-                if (teamReportsElement) {
-                    teamReportsElement.textContent = teamReports.length.toString();
-                }
-            }
-
-            // Update recent activity section
-            updateRecentActivity(userReports, sharedReports) {
-                const activityList = document.getElementById('recent-activity-list');
-                if (!activityList) return;
-
-                // Combine and sort all reports by date
-                const allReports = [...userReports, ...sharedReports]
-                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                    .slice(0, 5); // Show only 5 most recent
-
-                if (allReports.length === 0) {
-                    activityList.innerHTML = `
-                        <p style="color: var(--text-secondary); text-align: center;">
-                            Nenhuma atividade recente encontrada.
-                        </p>
-                    `;
-                    return;
-                }
-
-                // Generate activity HTML
-                const activityHTML = allReports.map(report => `
-                    <div style="padding: 10px 0; border-bottom: 1px solid var(--border-color);">
-                        <div style="color: var(--accent-blue); font-weight: 500;">
-                            ${Utils.sanitizeHtml(report.title)}
-                        </div>
-                        <div style="color: var(--text-secondary); font-size: 0.9em;">
-                            ${report.authorId === this.currentUser.id ? 'Criado' : 'Compartilhado'} em ${Utils.formatDate(report.createdAt)}
-                        </div>
-                    </div>
-                `).join('');
-
-                activityList.innerHTML = activityHTML;
-            }
-
-            // Verify user session periodically
-            startSessionVerification() {
-                // Check session every 5 minutes
-                setInterval(() => {
-                    if (!this.authService.checkSession()) {
-                        Utils.showMessage('Sessão expirada. Redirecionando para login...', 'error');
-                        setTimeout(() => {
-                            this.redirectToLogin();
-                        }, 2000);
-                    }
-                }, 5 * 60 * 1000);
-            }
+            });
         }
-
-        // Initialize dashboard when DOM is loaded
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Double-check session before initializing dashboard
-            const authService = new AuthService();
-            if (!authService.checkSession()) {
-                console.log('No valid session found, redirecting to login');
-                window.location.href = 'login.html';
-                return;
-            }
-
-            const dashboard = new DashboardController();
-            await dashboard.init();
-            dashboard.startSessionVerification();
-        });
     </script>
 </body>
 </html>

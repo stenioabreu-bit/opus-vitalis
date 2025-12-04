@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Classes</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #000; color: #fff; }
+        .log { background: #111; padding: 5px; margin: 5px 0; border-radius: 4px; font-size: 12px; }
+        .error { color: #ff4444; }
+        .success { color: #44ff44; }
+        .info { color: #4444ff; }
+    </style>
+</head>
+<body>
+    <h1>Teste de Classes</h1>
+    <button onclick="testClasses()">Testar Classes</button>
+    <div id="log"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logEl.appendChild(div);
+            console.log(message);
+        }
+
+        function testClasses() {
+            document.getElementById('log').innerHTML = '';
+            log('Iniciando teste de classes...', 'info');
+            
+            try {
+                // Test 1: Check if scripts are loaded
+                log('1. Verificando se scripts estão carregados...', 'info');
+                
+                if (typeof Utils !== 'undefined') {
+                    log('✅ Utils carregado', 'success');
+                } else {
+                    log('❌ Utils não encontrado', 'error');
+                }
+                
+                if (typeof AuthService !== 'undefined') {
+                    log('✅ AuthService carregado', 'success');
+                } else {
+                    log('❌ AuthService não encontrado', 'error');
+                }
+                
+                if (typeof DataLoader !== 'undefined') {
+                    log('✅ DataLoader carregado', 'success');
+                } else {
+                    log('❌ DataLoader não encontrado', 'error');
+                }
+                
+                if (typeof SyncService !== 'undefined') {
+                    log('✅ SyncService carregado', 'success');
+                } else {
+                    log('⚠️ SyncService não encontrado (opcional)', 'info');
+                }
+                
+                if (typeof ReportsService !== 'undefined') {
+                    log('✅ ReportsService carregado', 'success');
+                } else {
+                    log('❌ ReportsService não encontrado', 'error');
+                    return;
+                }
+                
+                // Test 2: Create DataLoader
+                log('2. Criando DataLoader...', 'info');
+                const dataLoader = new DataLoader();
+                log('✅ DataLoader criado', 'success');
+                
+                // Test 3: Create AuthService
+                log('3. Criando AuthService...', 'info');
+                const authService = new AuthService();
+                log('✅ AuthService criado', 'success');
+                
+                // Test 4: Create ReportsService
+                log('4. Criando ReportsService...', 'info');
+                const reportsService = new ReportsService();
+                log('✅ ReportsService criado', 'success');
+                
+                log('🎉 Todas as classes foram criadas com sucesso!', 'success');
+                
+            } catch (error) {
+                log('❌ Erro: ' + error.message, 'error');
+                log('Stack: ' + error.stack, 'error');
+                console.error('Test error:', error);
+            }
+        }
+    </script>
+    
+    <!-- Load scripts in order -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script src="scripts/sync-service.js"></script>
+    <script src="scripts/reports.js"></script>
+</body>
+</html>

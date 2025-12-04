@@ -11,7 +11,7 @@ const pages = [
     'create-report.html',
     'reports.html',
     'view-report.html',
-    'shared-reports.html',
+    // 'shared-reports.html', // Compartilhamento removido
     'team-reports.html'
 ];
 

@@ -57,7 +57,39 @@
         .filter-group label {
             color: var(--text-secondary);
             font-size: 0.9em;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 14px;
+            padding-right: 35px;
+        }
+        
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 8px rgba(204, 0, 0, 0.3);
+        }
+        
+        .filter-group input[type="date"] {
+            color-scheme: dark;
         }
         
         .reports-grid {
@@ -154,6 +186,10 @@
             gap: 5px;
         }
         
+        .report-date svg {
+            opacity: 0.7;
+        }
+        
         .report-actions {
             display: flex;
             gap: 10px;
@@ -190,6 +226,29 @@
         .action-btn.edit:hover {
             background: var(--accent-blue);
             color: white;
+        }
+        
+
+        
+        .action-btn.delete {
+            background: var(--error-red);
+            color: white;
+            font-size: 0.75em;
+        }
+        
+        .action-btn.delete:hover {
+            background: #8b0000;
+        }
+        
+        .action-btn svg {
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         
         .empty-state {
@@ -258,6 +317,13 @@
             .report-actions {
                 width: 100%;
                 justify-content: flex-end;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+            
+            .action-btn {
+                font-size: 0.7em;
+                padding: 4px 8px;
             }
         }
     </style>
@@ -274,7 +340,7 @@
                 </p>
             </div>
             <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                <a href="shared-reports.html" class="btn btn-secondary">Relatórios Compartilhados</a>
+                <!-- Compartilhamento removido -->
                 <a href="create-report.html" class="btn btn-primary">Novo Relatório</a>
             </div>
         </div>
@@ -333,13 +399,18 @@
     <script src="scripts/utils.js"></script>
     <script src="scripts/auth.js"></script>
     <script src="scripts/data-loader.js"></script>
+    <script src="scripts/sync-service.js"></script>
+    <!-- Compartilhamento removido -->
     <script src="scripts/reports.js"></script>
     <script>
         // Reports List Controller
         class ReportsListController {
             constructor() {
+                console.log('Creating AuthService...');
                 this.authService = new AuthService();
+                console.log('Creating ReportsService...');
                 this.reportsService = new ReportsService();
+                console.log('Services created successfully');
                 this.currentUser = null;
                 this.allReports = [];
                 this.filteredReports = [];
@@ -347,7 +418,7 @@
 
             // Initialize the page
             async init() {
-                // Check authentication
+                // Simple session check
                 if (!this.authService.checkSession()) {
                     window.location.href = 'login.html';
                     return;
@@ -362,8 +433,14 @@
                 // Setup event handlers
                 this.setupFilterHandlers();
                 
-                // Load reports
-                await this.loadReports();
+                // Load reports with error handling
+                try {
+                    await this.loadReports();
+                } catch (error) {
+                    console.error('Failed to load reports during init:', error);
+                    Utils.showMessage('Erro ao inicializar página de relatórios.', 'error');
+                    this.showEmptyState();
+                }
             }
 
             // Setup filter event handlers
@@ -384,21 +461,40 @@
 
             // Load reports from service
             async loadReports() {
+                console.log('Starting loadReports...');
+                this.showLoadingState();
+                
                 try {
-                    this.showLoadingState();
+                    console.log('Current user:', this.currentUser);
                     
-                    // Load user's reports
+                    // Load user's reports with detailed logging
+                    console.log('Calling reportsService.loadReports...');
                     this.allReports = await this.reportsService.loadReports(this.currentUser.id);
+                    console.log('Reports loaded:', this.allReports.length);
+                    
+                    // Check if user is leader and show indicator
+                    if (this.currentUser.role === 'leader') {
+                        console.log('User is leader, updating title...');
+                        const pageTitle = document.querySelector('h1');
+                        if (pageTitle && !pageTitle.innerHTML.includes('👑')) {
+                            pageTitle.innerHTML = '👑 Meus Relatórios <span style="font-size: 0.6em; color: var(--accent-crimson);">(Visão de Liderança - Todos os Relatórios)</span>';
+                        }
+                    }
                     
                     // Sort by creation date (most recent first)
-                    this.allReports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    if (this.allReports && this.allReports.length > 0) {
+                        this.allReports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                        console.log('Reports sorted');
+                    }
                     
                     // Apply initial filters (none)
                     this.applyFilters();
+                    console.log('Filters applied');
                     
                 } catch (error) {
                     console.error('Error loading reports:', error);
-                    Utils.showMessage('Erro ao carregar relatórios.', 'error');
+                    console.error('Error stack:', error.stack);
+                    Utils.showMessage('Erro ao carregar relatórios: ' + error.message, 'error');
                     this.showEmptyState();
                 }
             }
@@ -492,14 +588,47 @@
                         
                         <div class="report-meta">
                             <div class="report-date">
-                                <span>📅 ${formattedDate}</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                                <span>${formattedDate}</span>
                             </div>
+                            ${report.authorId !== currentUser.id ? `
+                            <div class="report-author" style="color: var(--accent-crimson); font-weight: 500;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                                Por: ${Utils.sanitizeHtml(report.authorName)}
+                            </div>
+                            ` : ''}
                             <div class="report-actions">
-                                <a href="view-report.html?id=${report.id}" class="action-btn view">
-                                    👁️ Ver
+                                <a href="view-report.html?id=${report.id}" class="action-btn view" title="Ver relatório">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    Ver
                                 </a>
-                                <button class="action-btn edit" data-action="edit" data-report-id="${report.id}">
-                                    ✏️ Editar
+                                <button class="action-btn edit" data-action="edit" data-report-id="${report.id}" title="Editar relatório">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                    Editar
+                                </button>
+
+                                <button class="action-btn delete" data-action="delete" data-report-id="${report.id}" title="Excluir relatório">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3,6 5,6 21,6"/>
+                                        <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
+                                        <line x1="10" y1="11" x2="10" y2="17"/>
+                                        <line x1="14" y1="11" x2="14" y2="17"/>
+                                    </svg>
+                                    Excluir
                                 </button>
                             </div>
                         </div>
@@ -543,6 +672,72 @@
                         window.location.href = `view-report.html?id=${reportId}&edit=true`;
                     });
                 });
+                
+                // Delete button handlers
+                const deleteButtons = document.querySelectorAll('.action-btn.delete');
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        const reportId = button.dataset.reportId;
+                        
+                        // Confirm deletion
+                        if (!confirm('Tem certeza que deseja excluir este relatório? Esta ação não pode ser desfeita.')) {
+                            return;
+                        }
+                        
+                        // Disable button and show loading
+                        button.disabled = true;
+                        button.innerHTML = `
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-spin">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                            Excluindo...
+                        `;
+                        
+                        try {
+                            const result = await this.reportsService.deleteReport(reportId, this.currentUser.id);
+                            
+                            if (result.success) {
+                                Utils.showMessage(result.message, 'success');
+                                // Remove the report card from the display
+                                const reportCard = button.closest('.report-card');
+                                if (reportCard) {
+                                    reportCard.remove();
+                                }
+                                // Reload reports to update the display
+                                await this.loadReports();
+                            } else {
+                                Utils.showMessage(result.message, 'error');
+                                button.disabled = false;
+                                button.innerHTML = `
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3,6 5,6 21,6"/>
+                                        <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
+                                        <line x1="10" y1="11" x2="10" y2="17"/>
+                                        <line x1="14" y1="11" x2="14" y2="17"/>
+                                    </svg>
+                                    Excluir
+                                `;
+                            }
+                        } catch (error) {
+                            console.error('Delete error:', error);
+                            Utils.showMessage('Erro ao excluir relatório', 'error');
+                            button.disabled = false;
+                            button.innerHTML = `
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3,6 5,6 21,6"/>
+                                    <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
+                                    <line x1="10" y1="11" x2="10" y2="17"/>
+                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                </svg>
+                                Excluir
+                            `;
+                        }
+                    });
+                });
+                
+
             }
 
             // Show loading state

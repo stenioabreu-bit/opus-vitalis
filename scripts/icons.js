@@ -54,29 +54,78 @@ class IconManager {
     // Replace emoji with SVG icons in text
     replaceEmojisWithIcons(text) {
         const emojiMap = {
-            '✅': this.getIconHTML('success', 'icon icon-success'),
-            '✓': this.getIconHTML('success', 'icon icon-success'),
-            '❌': this.getIconHTML('error', 'icon icon-error'),
-            '✗': this.getIconHTML('error', 'icon icon-error'),
-            '⚠️': this.getIconHTML('warning', 'icon icon-warning'),
-            '⚠': this.getIconHTML('warning', 'icon icon-warning'),
-            'ℹ️': this.getIconHTML('info', 'icon icon-crimson'),
-            '🔄': this.getIconHTML('loading', 'icon icon-spin'),
+            // Status icons
+            '✅': this.getIconHTML('check-circle', 'icon icon-success'),
+            '✓': this.getIconHTML('check', 'icon icon-success'),
+            '❌': this.getIconHTML('x-circle', 'icon icon-error'),
+            '✗': this.getIconHTML('x', 'icon icon-error'),
+            '⚠️': this.getIconHTML('alert-triangle', 'icon icon-warning'),
+            '⚠': this.getIconHTML('alert-triangle', 'icon icon-warning'),
+            'ℹ️': this.getIconHTML('info', 'icon icon-info'),
+            
+            // Action icons
+            '🔄': this.getIconHTML('refresh-cw', 'icon icon-spin'),
+            '⏳': this.getIconHTML('clock', 'icon icon-warning'),
+            '🔍': this.getIconHTML('search', 'icon'),
+            '📤': this.getIconHTML('upload', 'icon'),
+            '📥': this.getIconHTML('download', 'icon'),
+            '🔗': this.getIconHTML('share-2', 'icon'),
+            '📋': this.getIconHTML('clipboard', 'icon'),
+            '📝': this.getIconHTML('edit-3', 'icon'),
+            '👁️': this.getIconHTML('eye', 'icon'),
+            '✏️': this.getIconHTML('edit-2', 'icon'),
+            '🗑️': this.getIconHTML('trash-2', 'icon icon-error'),
+            
+            // User/People icons
             '👤': this.getIconHTML('user', 'icon'),
-            '📊': this.getIconHTML('dashboard', 'icon'),
-            '📝': this.getIconHTML('report', 'icon'),
-            '👥': this.getIconHTML('team', 'icon'),
-            '🔗': this.getIconHTML('share', 'icon'),
-            '👁️': this.getIconHTML('view', 'icon'),
-            '🛡️': this.getIconHTML('shield', 'icon'),
+            '👥': this.getIconHTML('users', 'icon'),
+            '🔑': this.getIconHTML('key', 'icon'),
+            '🚪': this.getIconHTML('log-out', 'icon'),
+            
+            // Navigation icons
+            '📊': this.getIconHTML('bar-chart-2', 'icon'),
+            '🏠': this.getIconHTML('home', 'icon'),
+            '⚙️': this.getIconHTML('settings', 'icon'),
+            '📁': this.getIconHTML('folder', 'icon'),
+            '📄': this.getIconHTML('file-text', 'icon'),
+            
+            // Status/Theme icons
+            '🛡️': this.getIconHTML('shield', 'icon icon-crimson'),
             '💀': this.getIconHTML('skull', 'icon icon-crimson'),
-            '🎉': this.getIconHTML('success', 'icon icon-success icon-pulse'),
-            '🚪': this.getIconHTML('logout', 'icon')
+            '🎯': this.getIconHTML('target', 'icon icon-crimson'),
+            '⚡': this.getIconHTML('zap', 'icon icon-warning'),
+            '🔥': this.getIconHTML('flame', 'icon icon-error'),
+            
+            // Celebration/Success
+            '🎉': this.getIconHTML('check-circle', 'icon icon-success icon-pulse'),
+            '✨': this.getIconHTML('star', 'icon icon-warning icon-pulse'),
+            '🚀': this.getIconHTML('trending-up', 'icon icon-success'),
+            
+            // Dates/Time
+            '📅': this.getIconHTML('calendar', 'icon'),
+            '🕐': this.getIconHTML('clock', 'icon'),
+            
+            // Communication
+            '🔔': this.getIconHTML('bell', 'icon icon-warning'),
+            '💬': this.getIconHTML('message-circle', 'icon'),
+            '📧': this.getIconHTML('mail', 'icon'),
+            
+            // Technical
+            '☁️': this.getIconHTML('cloud', 'icon'),
+            '🌐': this.getIconHTML('globe', 'icon'),
+            '🔧': this.getIconHTML('tool', 'icon'),
+            '🧪': this.getIconHTML('flask', 'icon'),
+            
+            // Arrows/Navigation
+            '←': this.getIconHTML('arrow-left', 'icon'),
+            '→': this.getIconHTML('arrow-right', 'icon'),
+            '↑': this.getIconHTML('arrow-up', 'icon'),
+            '↓': this.getIconHTML('arrow-down', 'icon')
         };
 
         let result = text;
         for (const [emoji, icon] of Object.entries(emojiMap)) {
-            result = result.replace(new RegExp(emoji, 'g'), icon);
+            result = result.replace(new RegExp(emoji.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), icon);
         }
         
         return result;

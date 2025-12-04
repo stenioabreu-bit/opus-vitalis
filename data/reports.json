@@ -1,41 +1,62 @@
 {
   "report_001": {
     "id": "report_001",
-    "title": "Investigação Paranormal - Casa Abandonada",
-    "description": "Relatório detalhado da investigação na casa abandonada da Rua das Flores, 123. Durante a missão, foram identificados fenômenos paranormais incluindo movimentação de objetos, quedas de temperatura e manifestações auditivas. A equipe conseguiu neutralizar a entidade responsável pelos distúrbios.",
+    "title": "Missão de Reconhecimento - Setor Alpha",
+    "description": "Relatório de reconhecimento da área Alpha-7 com anomalias detectadas.",
     "missionDate": "2024-12-01",
     "status": "completed",
-    "authorId": "user_001",
-    "authorName": "Bella Evans",
-    "createdAt": "2024-12-01T18:30:00Z",
-    "updatedAt": "2024-12-01T18:30:00Z",
-    "sharedWith": ["user_002"],
-    "isPublic": false
+    "authorId": "user_002",
+    "authorName": "Melissa Kardelis",
+    "createdAt": "2024-12-01T14:30:00.000Z",
+    "updatedAt": "2024-12-01T14:30:00.000Z",
+    "content": {
+      "summary": "Área Alpha-7 apresenta atividade paranormal moderada. Recomenda-se cautela.",
+      "details": "Durante a missão de reconhecimento, foram detectadas 3 anomalias de nível 2. Equipe retornou sem baixas."
+    }
   },
   "report_002": {
     "id": "report_002",
-    "title": "Operação Cemitério Central",
-    "description": "Missão de reconhecimento no Cemitério Central após relatos de atividade paranormal intensa. A investigação revelou a presença de múltiplas entidades, sendo necessário solicitar reforços. Operação parcialmente concluída com contenção temporária.",
-    "missionDate": "2024-11-28",
+    "title": "Operação Limpeza - Laboratório Abandonado",
+    "description": "Eliminação de entidades hostis no laboratório da Universidade.",
+    "missionDate": "2024-12-02",
     "status": "partial",
     "authorId": "user_003",
-    "authorName": "Ana Costa",
-    "createdAt": "2024-11-28T22:15:00Z",
-    "updatedAt": "2024-11-28T22:15:00Z",
-    "sharedWith": ["user_002"],
-    "isPublic": false
+    "authorName": "Tao Feng",
+    "createdAt": "2024-12-02T09:15:00.000Z",
+    "updatedAt": "2024-12-02T09:15:00.000Z",
+    "content": {
+      "summary": "Laboratório parcialmente limpo. Uma entidade escapou.",
+      "details": "Conseguimos eliminar 4 das 5 entidades presentes. A quinta conseguiu fugir pelos dutos de ventilação."
+    }
   },
   "report_003": {
     "id": "report_003",
-    "title": "Incidente na Escola Municipal",
-    "description": "Resposta de emergência a incidente paranormal na Escola Municipal São José. Infelizmente, a entidade conseguiu escapar antes da neutralização completa, resultando em danos estruturais significativos ao prédio.",
-    "missionDate": "2024-11-25",
+    "title": "Investigação - Desaparecimentos no Bairro Central",
+    "description": "Investigação sobre série de desaparecimentos misteriosos.",
+    "missionDate": "2024-12-03",
     "status": "failed",
     "authorId": "user_004",
-    "authorName": "Pedro Santos",
-    "createdAt": "2024-11-25T14:45:00Z",
-    "updatedAt": "2024-11-25T14:45:00Z",
-    "sharedWith": ["user_005"],
-    "isPublic": false
+    "authorName": "Jhonny D'Angelo",
+    "createdAt": "2024-12-03T16:45:00.000Z",
+    "updatedAt": "2024-12-03T16:45:00.000Z",
+    "content": {
+      "summary": "Investigação interrompida devido a interferência sobrenatural.",
+      "details": "A entidade responsável pelos desaparecimentos mostrou-se mais poderosa que o esperado. Equipe teve que recuar."
+    }
+  },
+  "report_004": {
+    "id": "report_004",
+    "title": "Relatório de Liderança - Status Geral da Equipe",
+    "description": "Relatório semanal sobre o status das operações da Opus Vitalis.",
+    "missionDate": "2024-12-04",
+    "status": "completed",
+    "authorId": "user_001",
+    "authorName": "Bella Evans",
+    "createdAt": "2024-12-04T11:00:00.000Z",
+    "updatedAt": "2024-12-04T11:00:00.000Z",
+    "content": {
+      "summary": "Equipe operando dentro dos parâmetros normais. Algumas preocupações com o setor Alpha.",
+      "details": "Baseado nos relatórios recebidos, recomendo reforço na área Alpha-7 e treinamento adicional para lidar com entidades de nível superior."
+    }
   }
 }

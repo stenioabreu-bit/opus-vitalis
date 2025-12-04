@@ -155,12 +155,8 @@ class SessionGuard {
 // Global session guard instance
 window.sessionGuard = new SessionGuard();
 
-// Auto-initialize when DOM is loaded (if not already initialized)
-document.addEventListener('DOMContentLoaded', function() {
-    if (!window.sessionGuard.authService) {
-        window.sessionGuard.init();
-    }
-});
+// Auto-initialize disabled to prevent conflicts
+// Pages should initialize session guard manually if needed
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', function() {

@@ -3,9 +3,16 @@
 
 class DataLoader {
     constructor() {
-        this.usersCache = null;
-        this.teamsCache = null;
-        this.reportsCache = null;
+        try {
+            console.log('Initializing DataLoader...');
+            this.usersCache = null;
+            this.teamsCache = null;
+            this.reportsCache = null;
+            console.log('DataLoader initialized successfully');
+        } catch (error) {
+            console.error('Error in DataLoader constructor:', error);
+            throw error;
+        }
     }
 
     // Load users data from JSON file
@@ -141,37 +148,23 @@ class DataLoader {
         return users[username] || null;
     }
 
-    // Get fallback users data when file loading fails
-    getFallbackUsers() {
-        return {
-            "bella_evans": {
-                "id": "user_001",
-                "username": "bella_evans",
-                "password": "sãocristovão2016",
-                "name": "Bella Evans",
-                "role": "agent",
-                "team": "team_alpha",
-                "createdAt": "2024-01-01T00:00:00Z"
-            }
-        };
-    }
-
-    // Get fallback teams data when file loading fails
-    getFallbackTeams() {
-        return {
-            "team_alpha": {
-                "id": "team_alpha",
-                "name": "Equipe Alpha",
-                "leaderId": "user_002",
-                "members": ["user_001"],
-                "createdAt": "2024-01-01T00:00:00Z"
-            }
-        };
-    }
-
     // Get fallback reports data when file loading fails
     getFallbackReports() {
-        return {};
+        console.log('Using fallback reports data');
+        return {
+            "report_fallback_001": {
+                "id": "report_fallback_001",
+                "title": "Sistema Inicializado",
+                "description": "Sistema de relatórios inicializado com sucesso. Dados de fallback carregados.",
+                "missionDate": "2024-12-04",
+                "status": "completed",
+                "authorId": "user_001",
+                "authorName": "Sistema",
+                "createdAt": "2024-12-04T10:00:00.000Z",
+                "updatedAt": "2024-12-04T10:00:00.000Z",
+                "isPublic": false
+            }
+        };
     }
 
     // Check if system is running with fallback data

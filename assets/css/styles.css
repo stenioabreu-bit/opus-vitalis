@@ -16,6 +16,92 @@
   --card-bg: rgba(26, 26, 26, 0.8);
   --crimson-glow: rgba(139, 0, 0, 0.3);
   --crimson-glow-strong: rgba(139, 0, 0, 0.6);
+  --accent-blue: #cc0000;
+  --warning-orange: #ffa500;
+  --info-blue: #0099cc;
+}
+
+/* Icon Styles */
+.icon {
+  width: 1em;
+  height: 1em;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.25em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-success {
+  color: var(--success-green);
+}
+
+.icon-error {
+  color: var(--error-red);
+}
+
+.icon-warning {
+  color: var(--warning-orange);
+}
+
+.icon-info {
+  color: var(--info-blue);
+}
+
+.icon-crimson {
+  color: var(--accent-crimson);
+}
+
+.icon-spin {
+  animation: spin 1s linear infinite;
+}
+
+.icon-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.icon-sm {
+  width: 0.875em;
+  height: 0.875em;
+}
+
+.icon-lg {
+  width: 1.25em;
+  height: 1.25em;
+}
+
+.icon-xl {
+  width: 1.5em;
+  height: 1.5em;
+}
+
+/* Icon Animations */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Button Icon Styles */
+.btn .icon {
+  margin-right: 0.5em;
+  margin-left: 0;
+}
+
+.btn .icon:last-child {
+  margin-right: 0;
+  margin-left: 0.5em;
+}
+
+.btn .icon:only-child {
+  margin: 0;
 }
 
 /* Base Styles */
@@ -89,13 +175,26 @@ input[type="date"],
 textarea,
 select {
   width: 100%;
-  padding: 12px;
+  padding: 12px 16px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 6px;
   color: var(--text-primary);
   font-size: 16px;
+  font-family: 'Rajdhani', 'Arial', sans-serif;
   transition: all 0.3s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* Custom select arrow */
+select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
 }
 
 input:focus,
@@ -104,6 +203,23 @@ select:focus {
   outline: none;
   border-color: var(--accent-crimson);
   box-shadow: 0 0 10px var(--crimson-glow);
+  background: rgba(26, 26, 26, 0.9);
+}
+
+/* Select hover effect */
+select:hover {
+  border-color: var(--accent-crimson);
+  background: rgba(26, 26, 26, 0.9);
+}
+
+/* Date input specific styling */
+input[type="date"] {
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
 }
 
 /* Button Styles */
@@ -116,8 +232,20 @@ select:focus {
   font-weight: 500;
   transition: all 0.3s ease;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   text-align: center;
+}
+
+.btn svg {
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.btn:hover svg {
+  transform: scale(1.1);
 }
 
 .btn-primary {

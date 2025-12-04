@@ -73,119 +73,7 @@
             flex-wrap: wrap;
         }
         
-        .sharing-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        .sharing-modal.active {
-            display: flex;
-        }
-        
-        .sharing-content {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        
-        .sharing-header {
-            color: var(--accent-blue);
-            font-size: 1.3em;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .search-container {
-            margin-bottom: 20px;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 12px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-primary);
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-        }
-        
-        .search-input::placeholder {
-            color: var(--text-secondary);
-        }
-        
-        .user-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-        
-        .no-users-message {
-            text-align: center;
-            color: var(--text-secondary);
-            padding: 20px;
-            font-style: italic;
-        }
-        
-        .user-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .user-item:hover {
-            border-color: var(--accent-blue);
-            background: rgba(0, 212, 255, 0.1);
-        }
-        
-        .user-item input[type="checkbox"] {
-            margin-right: 10px;
-            width: 18px;
-            height: 18px;
-        }
-        
-        .user-info {
-            flex: 1;
-        }
-        
-        .user-name {
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-        
-        .user-role {
-            color: var(--text-secondary);
-            font-size: 0.9em;
-        }
-        
-        .sharing-actions {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
+        /* Compartilhamento removido */
         
         .edit-form {
             display: none;
@@ -345,38 +233,14 @@
             </div>
         </div>
 
-        <!-- Sharing Modal -->
-        <div id="sharing-modal" class="sharing-modal">
-            <div class="sharing-content">
-                <div class="sharing-header">Compartilhar Relatório</div>
-                
-                <div class="search-container">
-                    <input type="text" id="user-search" class="search-input" placeholder="Buscar usuários por nome ou equipe...">
-                </div>
-                
-                <div class="user-list" id="user-list">
-                    <div class="text-center" style="padding: 20px; color: var(--text-secondary);">
-                        <div class="loading" style="margin: 0 auto 10px;"></div>
-                        <p>Carregando usuários...</p>
-                    </div>
-                </div>
-                
-                <div id="selected-count" style="color: var(--text-secondary); margin-bottom: 15px; text-align: center;">
-                    0 usuários selecionados
-                </div>
-                
-                <div class="sharing-actions">
-                    <button id="confirm-share" class="btn btn-primary" disabled>Compartilhar</button>
-                    <button id="cancel-share" class="btn btn-secondary">Cancelar</button>
-                </div>
-            </div>
-        </div>
+        <!-- Compartilhamento removido -->
     </div>
 
     <!-- Scripts -->
     <script src="scripts/utils.js"></script>
     <script src="scripts/auth.js"></script>
     <script src="scripts/data-loader.js"></script>
+    <!-- Compartilhamento removido -->
     <script src="scripts/reports.js"></script>
     <script>
         // Initialize view report page functionality
@@ -464,9 +328,23 @@
                         
                         <div class="report-actions">
                             ${isOwner && !isShared ? `
-                                <button class="btn btn-secondary" onclick="editReport('${report.id}')">Editar</button>
-                                <button class="btn btn-primary" onclick="shareReport('${report.id}')">Compartilhar</button>
-                                <button class="btn btn-danger" onclick="deleteReport('${report.id}')">Excluir</button>
+                                <button class="btn btn-secondary" onclick="editReport('${report.id}')">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                    Editar
+                                </button>
+                                <!-- Compartilhamento removido -->
+                                <button class="btn btn-danger" onclick="deleteReport('${report.id}')">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3,6 5,6 21,6"/>
+                                        <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
+                                        <line x1="10" y1="11" x2="10" y2="17"/>
+                                        <line x1="14" y1="11" x2="14" y2="17"/>
+                                    </svg>
+                                    Excluir
+                                </button>
                             ` : ''}
                             ${isShared ? `
                                 <span style="color: var(--accent-blue); font-weight: bold;">📖 Modo Somente Leitura</span>
@@ -481,9 +359,7 @@
                 showEditForm(reportId);
             };
             
-            window.shareReport = function(reportId) {
-                showSharingModal(reportId);
-            };
+            // Compartilhamento removido
             
             window.deleteReport = function(reportId) {
                 if (confirm('Tem certeza que deseja excluir este relatório? Esta ação não pode ser desfeita.')) {
@@ -577,185 +453,7 @@
                 }
             }
             
-            // Show sharing modal
-            async function showSharingModal(reportId) {
-                const modal = document.getElementById('sharing-modal');
-                const userList = document.getElementById('user-list');
-                const searchInput = document.getElementById('user-search');
-                const selectedCount = document.getElementById('selected-count');
-                const confirmBtn = document.getElementById('confirm-share');
-                
-                // Reset modal state
-                searchInput.value = '';
-                selectedCount.textContent = '0 usuários selecionados';
-                confirmBtn.disabled = true;
-                
-                // Show modal
-                modal.classList.add('active');
-                
-                try {
-                    // Load available users
-                    const users = await reportsService.getAvailableUsers(currentUser.id);
-                    
-                    if (users.length === 0) {
-                        userList.innerHTML = `
-                            <div class="no-users-message">
-                                Nenhum usuário disponível para compartilhamento.
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    // Store users for filtering
-                    window.availableUsers = users;
-                    
-                    // Display all users initially
-                    displayFilteredUsers(users);
-                    
-                    // Setup search functionality
-                    setupUserSearch();
-                    
-                } catch (error) {
-                    console.error('Error loading users:', error);
-                    userList.innerHTML = `
-                        <div class="no-users-message" style="color: var(--error-red);">
-                            Erro ao carregar usuários.
-                        </div>
-                    `;
-                }
-                
-                // Setup modal event handlers
-                setupSharingModalHandlers(reportId);
-            }
-            
-            // Display filtered users in the list
-            function displayFilteredUsers(users) {
-                const userList = document.getElementById('user-list');
-                
-                if (users.length === 0) {
-                    userList.innerHTML = `
-                        <div class="no-users-message">
-                            Nenhum usuário encontrado com os critérios de busca.
-                        </div>
-                    `;
-                    return;
-                }
-                
-                userList.innerHTML = users.map(user => `
-                    <div class="user-item" data-user-id="${user.id}">
-                        <input type="checkbox" id="user-${user.id}" value="${user.id}" onchange="updateSelectedCount()">
-                        <div class="user-info">
-                            <div class="user-name">${Utils.sanitizeHtml(user.name)}</div>
-                            <div class="user-role">${user.role === 'leader' ? 'Líder' : 'Agente'}${user.team ? ` - ${Utils.sanitizeHtml(user.team)}` : ''}</div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-            
-            // Setup user search functionality
-            function setupUserSearch() {
-                const searchInput = document.getElementById('user-search');
-                
-                searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase().trim();
-                    
-                    if (!window.availableUsers) return;
-                    
-                    const filteredUsers = window.availableUsers.filter(user => {
-                        const nameMatch = user.name.toLowerCase().includes(searchTerm);
-                        const teamMatch = user.team && user.team.toLowerCase().includes(searchTerm);
-                        const roleMatch = (user.role === 'leader' ? 'líder' : 'agente').includes(searchTerm);
-                        
-                        return nameMatch || teamMatch || roleMatch;
-                    });
-                    
-                    displayFilteredUsers(filteredUsers);
-                });
-            }
-            
-            // Update selected count and button state
-            window.updateSelectedCount = function() {
-                const selectedCheckboxes = document.querySelectorAll('#user-list input[type="checkbox"]:checked');
-                const count = selectedCheckboxes.length;
-                const selectedCount = document.getElementById('selected-count');
-                const confirmBtn = document.getElementById('confirm-share');
-                
-                selectedCount.textContent = `${count} usuário${count !== 1 ? 's' : ''} selecionado${count !== 1 ? 's' : ''}`;
-                confirmBtn.disabled = count === 0;
-            };
-            
-            // Setup sharing modal event handlers
-            function setupSharingModalHandlers(reportId) {
-                const modal = document.getElementById('sharing-modal');
-                const confirmBtn = document.getElementById('confirm-share');
-                const cancelBtn = document.getElementById('cancel-share');
-                
-                // Remove existing event listeners to prevent duplicates
-                confirmBtn.onclick = null;
-                cancelBtn.onclick = null;
-                
-                // Confirm sharing
-                confirmBtn.onclick = async function() {
-                    const selectedUsers = Array.from(document.querySelectorAll('#user-list input[type="checkbox"]:checked'))
-                        .map(checkbox => checkbox.value);
-                    
-                    if (selectedUsers.length === 0) {
-                        Utils.showMessage('Selecione pelo menos um usuário para compartilhar.', 'error');
-                        return;
-                    }
-                    
-                    // Disable button during processing
-                    confirmBtn.disabled = true;
-                    confirmBtn.textContent = 'Compartilhando...';
-                    
-                    try {
-                        const result = await reportsService.shareReport(reportId, selectedUsers, currentUser.id);
-                        
-                        if (result.success) {
-                            Utils.showMessage(result.message, 'success');
-                            modal.classList.remove('active');
-                            
-                            // Show sharing confirmation with user names
-                            const userNames = selectedUsers.map(userId => {
-                                const user = window.availableUsers.find(u => u.id === userId);
-                                return user ? user.name : 'Usuário desconhecido';
-                            }).join(', ');
-                            
-                            setTimeout(() => {
-                                Utils.showMessage(`Relatório compartilhado com: ${userNames}`, 'success');
-                            }, 1000);
-                        } else {
-                            Utils.showMessage(result.message, 'error');
-                        }
-                    } catch (error) {
-                        console.error('Error sharing report:', error);
-                        Utils.showMessage('Erro ao compartilhar relatório.', 'error');
-                    } finally {
-                        // Re-enable button
-                        confirmBtn.disabled = false;
-                        confirmBtn.textContent = 'Compartilhar';
-                    }
-                };
-                
-                // Cancel sharing
-                cancelBtn.onclick = function() {
-                    modal.classList.remove('active');
-                };
-                
-                // Close modal when clicking outside
-                modal.onclick = function(e) {
-                    if (e.target === modal) {
-                        modal.classList.remove('active');
-                    }
-                };
-                
-                // Close modal with Escape key
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape' && modal.classList.contains('active')) {
-                        modal.classList.remove('active');
-                    }
-                });
-            }
+            // Compartilhamento removido - todas as funções relacionadas foram excluídas
         });
     </script>
 </body>
