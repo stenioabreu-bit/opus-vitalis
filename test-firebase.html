@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Firebase - Estrutura Firestore</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style>
+        .test-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .log {
+            background: var(--bg-secondary);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: var(--success-green); }
+        .error { color: var(--error-red); }
+        .info { color: var(--text-primary); }
+        .warning { color: var(--warning-orange); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Teste Firebase - Estrutura Firestore</h1>
+        
+        <div class="test-section">
+            <h2>📋 Estrutura dos Dados</h2>
+            <p>Testando a estrutura exata do Firestore:</p>
+            <pre style="color: var(--text-secondary); font-size: 12px;">
+/relatorios
+    └── 4F38GDL2P9D8 (id aleatório)
+        ├── titulo: "Relatório 1"
+        ├── conteudo: "Texto aqui"
+        ├── autor: "user_001"
+        ├── compartilhadoCom: ["user_002"]
+        ├── criadoEm: timestamp
+        ├── missionDate: "2024-12-04"
+        ├── status: "completed"
+        └── authorName: "Bella Evans"
+            </pre>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Testes</h2>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="testFirebaseConnection()">
+                    🔥 Testar Conexão Firebase
+                </button>
+                <button class="btn btn-secondary" onclick="testCreateReport()">
+                    📝 Criar Relatório Teste
+                </button>
+                <button class="btn btn-secondary" onclick="testLoadReports()">
+                    📋 Carregar Relatórios
+                </button>
+                <button class="btn btn-secondary" onclick="testShareReport()">
+                    🔗 Testar Compartilhamento
+                </button>
+                <button class="btn btn-danger" onclick="clearLog()">
+                    🗑️ Limpar Log
+                </button>
+            </div>
+            <div id="test-log" class="log"></div>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script src="scripts/firebase.js"></script>
+    <script src="scripts/reports.js"></script>
+    
+    <script>
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('test-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${timestamp}] ${message}`;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            document.getElementById('test-log').innerHTML = '';
+        }
+
+        async function testFirebaseConnection() {
+            log('🔥 Testando conexão com Firebase...', 'info');
+            
+            try {
+                // Test Firebase initialization
+                if (window.firebaseService) {
+                    const initialized = await window.firebaseService.init();
+                    if (initialized) {
+                        log('✅ Firebase conectado com sucesso!', 'success');
+                        
+                        // Test Firestore access
+                        const db = window.firebaseService.getDB();
+                        log('✅ Firestore acessível', 'success');
+                        
+                        // Test collection access
+                        const testQuery = await db.collection('relatorios').limit(1).get();
+                        log(`✅ Coleção 'relatorios' acessível (${testQuery.size} documentos encontrados)`, 'success');
+                        
+                    } else {
+                        log('❌ Falha na inicialização do Firebase', 'error');
+                    }
+                } else {
+                    log('❌ Firebase service não encontrado', 'error');
+                }
+                
+            } catch (error) {
+                log('❌ Erro na conexão: ' + error.message, 'error');
+                console.error('Firebase connection error:', error);
+            }
+        }
+
+        async function testCreateReport() {
+            log('📝 Testando criação de relatório...', 'info');
+            
+            try {
+                // Login first
+                const authService = new AuthService();
+                const loginResult = authService.login('bella_evans', 'sãocristovão2016');
+                
+                if (!loginResult.success) {
+                    log('❌ Erro no login: ' + loginResult.message, 'error');
+                    return;
+                }
+                
+                const currentUser = authService.getCurrentUser();
+                log(`👤 Logado como: ${currentUser.name}`, 'info');
+                
+                // Create test report
+                const reportsService = new ReportsService();
+                const reportData = {
+                    title: 'Teste Firebase - ' + new Date().toLocaleString(),
+                    description: 'Este é um relatório de teste para verificar a estrutura do Firestore.',
+                    missionDate: '2024-12-04',
+                    status: 'completed'
+                };
+                
+                log('📤 Criando relatório...', 'info');
+                const result = await reportsService.createReport(reportData);
+                
+                if (result.success) {
+                    log('✅ Relatório criado com sucesso!', 'success');
+                    log(`📝 ID: ${result.report.id}`, 'success');
+                    log(`📋 Título: ${result.report.title}`, 'info');
+                    log(`👤 Autor: ${result.report.authorName}`, 'info');
+                } else {
+                    log('❌ Erro ao criar relatório: ' + result.message, 'error');
+                }
+                
+            } catch (error) {
+                log('❌ Erro no teste: ' + error.message, 'error');
+                console.error('Create report test error:', error);
+            }
+        }
+
+        async function testLoadReports() {
+            log('📋 Testando carregamento de relatórios...', 'info');
+            
+            try {
+                const authService = new AuthService();
+                if (!authService.checkSession()) {
+                    authService.login('bella_evans', 'sãocristovão2016');
+                }
+                
+                const currentUser = authService.getCurrentUser();
+                log(`👤 Carregando relatórios para: ${currentUser.name}`, 'info');
+                
+                const reportsService = new ReportsService();
+                const reports = await reportsService.loadReports(currentUser.id);
+                
+                log(`✅ Carregados ${reports.length} relatórios`, 'success');
+                
+                reports.forEach((report, index) => {
+                    log(`   ${index + 1}. ${report.title} (${report.status}) - ${report.authorName}`, 'info');
+                });
+                
+            } catch (error) {
+                log('❌ Erro ao carregar relatórios: ' + error.message, 'error');
+                console.error('Load reports test error:', error);
+            }
+        }
+
+        async function testShareReport() {
+            log('🔗 Testando compartilhamento...', 'info');
+            
+            try {
+                const authService = new AuthService();
+                if (!authService.checkSession()) {
+                    authService.login('bella_evans', 'sãocristovão2016');
+                }
+                
+                const currentUser = authService.getCurrentUser();
+                const reportsService = new ReportsService();
+                
+                // Get user's reports
+                const reports = await reportsService.loadReports(currentUser.id);
+                
+                if (reports.length === 0) {
+                    log('⚠️ Nenhum relatório encontrado para compartilhar', 'warning');
+                    return;
+                }
+                
+                const reportToShare = reports[0];
+                log(`📤 Compartilhando relatório: ${reportToShare.title}`, 'info');
+                
+                // Share with user_002 (Melissa)
+                const shareResult = await reportsService.shareReport(
+                    reportToShare.id, 
+                    ['user_002'], 
+                    currentUser.id
+                );
+                
+                if (shareResult.success) {
+                    log('✅ Relatório compartilhado com sucesso!', 'success');
+                    log(`📝 Mensagem: ${shareResult.message}`, 'success');
+                } else {
+                    log('❌ Erro ao compartilhar: ' + shareResult.message, 'error');
+                }
+                
+            } catch (error) {
+                log('❌ Erro no teste de compartilhamento: ' + error.message, 'error');
+                console.error('Share report test error:', error);
+            }
+        }
+
+        // Auto-run connection test on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Página de teste carregada', 'info');
+            log('📋 Estrutura do Firestore implementada conforme especificação', 'info');
+            
+            // Auto-test connection after a short delay
+            setTimeout(() => {
+                testFirebaseConnection();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

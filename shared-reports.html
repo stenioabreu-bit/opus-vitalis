@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opus Vitalis - Relatórios Compartilhados</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style>
+        .shared-indicator {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--accent-blue);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .report-author {
+            color: var(--accent-crimson);
+            font-weight: 500;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .notification-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+        
+        .notification-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .notification-details {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+        
+        .notification-actions {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <h1 class="logo-text">Relatórios Compartilhados</h1>
+                <p>Relatórios compartilhados por outros agentes</p>
+            </div>
+            <div>
+                <a href="dashboard.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Notifications Panel -->
+        <div id="notifications-panel" class="notification-panel" style="display: none;">
+            <h3 style="color: var(--accent-crimson); margin-bottom: 15px;">📬 Novas Notificações</h3>
+            <div id="notifications-list"></div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-container">
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label for="author-filter">Filtrar por Autor:</label>
+                    <select id="author-filter">
+                        <option value="">Todos os autores</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="status-filter">Filtrar por Status:</label>
+                    <select id="status-filter">
+                        <option value="">Todos os status</option>
+                        <option value="completed">Concluída</option>
+                        <option value="partial">Parcial</option>
+                        <option value="failed">Falhou</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="date-filter">Filtrar por Data:</label>
+                    <input type="date" id="date-filter">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="search-filter">Buscar:</label>
+                    <input type="text" id="search-filter" placeholder="Título ou descrição...">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reports Grid -->
+        <div id="reports-container">
+            <div class="text-center" style="padding: 60px 20px; color: var(--text-secondary);">
+                <div class="loading" style="margin: 0 auto 20px;"></div>
+                <p>Carregando relatórios compartilhados...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script src="scripts/firebase.js"></script>
+    <script src="scripts/reports.js"></script>
+    
+    <script>
+        // Shared Reports Page Controller
+        document.addEventListener('DOMContentLoaded', async function() {
+            const authService = new AuthService();
+            const reportsService = new ReportsService();
+            
+            // Check authentication
+            if (!authService.checkSession()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const currentUser = authService.getCurrentUser();
+            let allSharedReports = [];
+            let filteredReports = [];
+            
+            // Load shared reports and notifications
+            await loadSharedReports();
+            await loadNotifications();
+            setupFilters();
+            
+            // Load shared reports
+            async function loadSharedReports() {
+                try {
+                    console.log('📥 Loading shared reports...');
+                    const reports = await reportsService.loadSharedReports(currentUser.id);
+                    allSharedReports = reports;
+                    filteredReports = [...reports];
+                    
+                    displayReports(filteredReports);
+                    populateAuthorFilter(reports);
+                    
+                } catch (error) {
+                    console.error('Error loading shared reports:', error);
+                    Utils.showMessage('Erro ao carregar relatórios compartilhados.', 'error');
+                }
+            }
+            
+            // Load notifications
+            async function loadNotifications() {
+                try {
+                    const notifications = await reportsService.getNotificationsForUser(currentUser.id);
+                    const unreadNotifications = notifications.filter(n => !n.read);
+                    
+                    if (unreadNotifications.length > 0) {
+                        displayNotifications(unreadNotifications);
+                    }
+                    
+                } catch (error) {
+                    console.error('Error loading notifications:', error);
+                }
+            }
+            
+            // Display notifications
+            function displayNotifications(notifications) {
+                const panel = document.getElementById('notifications-panel');
+                const list = document.getElementById('notifications-list');
+                
+                if (notifications.length === 0) {
+                    panel.style.display = 'none';
+                    return;
+                }
+                
+                panel.style.display = 'block';
+                
+                list.innerHTML = notifications.map(notification => `
+                    <div class="notification-item" data-notification-id="${notification.id}">
+                        <div class="notification-content">
+                            <div class="notification-title">
+                                Novo relatório compartilhado: "${Utils.sanitizeHtml(notification.reportTitle)}"
+                            </div>
+                            <div class="notification-details">
+                                Por ${Utils.sanitizeHtml(notification.authorName)} • ${Utils.formatDateTime(notification.createdAt)}
+                            </div>
+                        </div>
+                        <div class="notification-actions">
+                            <button class="btn btn-sm btn-primary" onclick="viewSharedReport('${notification.reportId}', '${notification.id}')">
+                                Ver Relatório
+                            </button>
+                            <button class="btn btn-sm btn-secondary" onclick="markAsRead('${notification.id}')">
+                                Marcar como Lida
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // Display reports
+            function displayReports(reports) {
+                const container = document.getElementById('reports-container');
+                
+                if (reports.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <h3>Nenhum relatório compartilhado</h3>
+                            <p>Você ainda não recebeu relatórios compartilhados de outros agentes.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const reportsGrid = reports.map(report => {
+                    const statusClass = `status-${report.status}`;
+                    const statusText = {
+                        'completed': 'Concluída',
+                        'failed': 'Falhou',
+                        'partial': 'Parcial'
+                    }[report.status] || report.status;
+                    
+                    return `
+                        <div class="report-card" onclick="viewSharedReport('${report.id}')">
+                            <div class="report-header">
+                                <div>
+                                    <div class="report-title">${Utils.sanitizeHtml(report.title)}</div>
+                                    <div class="report-author">
+                                        👤 ${Utils.sanitizeHtml(report.authorName)}
+                                    </div>
+                                </div>
+                                <div class="shared-indicator">Compartilhado</div>
+                            </div>
+                            
+                            <div class="report-meta">
+                                <div class="meta-item">
+                                    <div class="meta-label">Data da Missão:</div>
+                                    <div class="meta-value">${Utils.formatDate(report.missionDate)}</div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="meta-label">Status:</div>
+                                    <div class="meta-value">
+                                        <span class="status-badge ${statusClass}">${statusText}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="report-description">
+                                ${Utils.sanitizeHtml(report.description)}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                container.innerHTML = `<div class="reports-grid">${reportsGrid}</div>`;
+            }
+            
+            // Populate author filter
+            function populateAuthorFilter(reports) {
+                const authorFilter = document.getElementById('author-filter');
+                const authors = [...new Set(reports.map(report => report.authorName))].sort();
+                
+                // Clear existing options (except "All")
+                authorFilter.innerHTML = '<option value="">Todos os autores</option>';
+                
+                authors.forEach(author => {
+                    const option = document.createElement('option');
+                    option.value = author;
+                    option.textContent = author;
+                    authorFilter.appendChild(option);
+                });
+            }
+            
+            // Setup filters
+            function setupFilters() {
+                const filters = ['author-filter', 'status-filter', 'date-filter', 'search-filter'];
+                filters.forEach(filterId => {
+                    const filter = document.getElementById(filterId);
+                    filter.addEventListener('change', applyFilters);
+                    filter.addEventListener('input', applyFilters);
+                });
+            }
+            
+            // Apply filters
+            function applyFilters() {
+                const authorFilter = document.getElementById('author-filter').value;
+                const statusFilter = document.getElementById('status-filter').value;
+                const dateFilter = document.getElementById('date-filter').value;
+                const searchFilter = document.getElementById('search-filter').value.toLowerCase();
+                
+                filteredReports = allSharedReports.filter(report => {
+                    // Author filter
+                    if (authorFilter && report.authorName !== authorFilter) {
+                        return false;
+                    }
+                    
+                    // Status filter
+                    if (statusFilter && report.status !== statusFilter) {
+                        return false;
+                    }
+                    
+                    // Date filter
+                    if (dateFilter && report.missionDate !== dateFilter) {
+                        return false;
+                    }
+                    
+                    // Search filter
+                    if (searchFilter) {
+                        const searchText = `${report.title} ${report.description}`.toLowerCase();
+                        if (!searchText.includes(searchFilter)) {
+                            return false;
+                        }
+                    }
+                    
+                    return true;
+                });
+                
+                displayReports(filteredReports);
+            }
+            
+            // Global functions
+            window.viewSharedReport = function(reportId, notificationId = null) {
+                if (notificationId) {
+                    markAsRead(notificationId);
+                }
+                window.location.href = `view-report.html?id=${reportId}&shared=true`;
+            };
+            
+            window.markAsRead = async function(notificationId) {
+                try {
+                    await reportsService.markNotificationAsRead(notificationId);
+                    const notificationElement = document.querySelector(`[data-notification-id="${notificationId}"]`);
+                    if (notificationElement) {
+                        notificationElement.remove();
+                        
+                        // Hide panel if no more notifications
+                        const remainingNotifications = document.querySelectorAll('.notification-item');
+                        if (remainingNotifications.length === 0) {
+                            document.getElementById('notifications-panel').style.display = 'none';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error marking notification as read:', error);
+                }
+            };
+        });
+    </script>
+</body>
+</html>

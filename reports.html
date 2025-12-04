@@ -340,7 +340,7 @@
                 </p>
             </div>
             <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                <!-- Compartilhamento removido -->
+                <a href="shared-reports.html" class="btn btn-secondary">Relatórios Compartilhados</a>
                 <a href="create-report.html" class="btn btn-primary">Novo Relatório</a>
             </div>
         </div>
@@ -396,11 +396,14 @@
     </div>
 
     <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    
     <script src="scripts/utils.js"></script>
     <script src="scripts/auth.js"></script>
     <script src="scripts/data-loader.js"></script>
-    <script src="scripts/sync-service.js"></script>
-    <!-- Compartilhamento removido -->
+    <script src="scripts/firebase.js"></script>
     <script src="scripts/reports.js"></script>
     <script>
         // Reports List Controller

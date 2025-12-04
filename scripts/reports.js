@@ -1,25 +1,39 @@
 // Reports Service Module
-// Handles report creation, loading, and management
+// Handles report creation, loading, and management with Firebase
 
 class ReportsService {
     constructor() {
         try {
-            console.log('Creating DataLoader...');
+            console.log('🔥 Creating ReportsService with Firebase...');
             this.dataLoader = new DataLoader();
-            console.log('DataLoader created successfully');
-            
             this.localStorageKey = 'opus_vitalis_reports';
-            this.syncService = null;
+            this.useFirebase = false;
+            this.firebaseReports = null;
             
-            // Initialize sync service asynchronously (don't wait)
-            this.initSync().catch(error => {
-                console.warn('Sync service initialization failed:', error);
+            // Initialize Firebase asynchronously
+            this.initFirebase().catch(error => {
+                console.warn('Firebase initialization failed, using localStorage:', error);
             });
             
-            console.log('ReportsService constructor completed');
+            console.log('✅ ReportsService constructor completed');
         } catch (error) {
-            console.error('Error in ReportsService constructor:', error);
+            console.error('❌ Error in ReportsService constructor:', error);
             throw error;
+        }
+    }
+
+    // Initialize Firebase
+    async initFirebase() {
+        try {
+            if (window.firebaseReportsService) {
+                await window.firebaseReportsService.init();
+                this.firebaseReports = window.firebaseReportsService;
+                this.useFirebase = true;
+                console.log('✅ Firebase Reports Service ready');
+            }
+        } catch (error) {
+            console.warn('⚠️ Firebase not available, using localStorage fallback:', error);
+            this.useFirebase = false;
         }
     }
 
@@ -108,49 +122,50 @@ class ReportsService {
     // Load reports for a specific user
     async loadReports(userId) {
         try {
-            console.log('Loading reports for user:', userId);
+            console.log('📋 Loading reports for user:', userId);
             
-            // Get all reports with error handling
-            let allReports = {};
-            try {
-                allReports = await this.getAllReports();
-                console.log('All reports loaded:', Object.keys(allReports).length);
-            } catch (error) {
-                console.error('Error in getAllReports:', error);
-                // Try to get just local reports
-                allReports = this.getLocalReports();
-                console.log('Using local reports only:', Object.keys(allReports).length);
-            }
-            
-            // Check if user is a leader with error handling
+            // Check if user is a leader
             let isLeader = false;
             try {
                 const users = await this.dataLoader.loadUsers();
                 const currentUser = Object.values(users).find(user => user.id === userId);
                 isLeader = currentUser && currentUser.role === 'leader';
-                console.log('User role check:', currentUser ? currentUser.role : 'not found');
+                console.log('👤 User role:', currentUser ? currentUser.role : 'not found');
             } catch (error) {
-                console.error('Error checking user role:', error);
-                // Default to non-leader if error
-                isLeader = false;
+                console.warn('⚠️ Error checking user role:', error);
             }
-            
-            // Convert to array and filter
+
+            // Try Firebase first, fallback to localStorage
+            if (this.useFirebase && this.firebaseReports) {
+                console.log('🔥 Loading reports from Firebase');
+                return await this.firebaseReports.loadReports(userId, isLeader);
+            } else {
+                console.log('💾 Loading reports from localStorage');
+                return await this.loadReportsLocal(userId, isLeader);
+            }
+
+        } catch (error) {
+            console.error('❌ Error loading reports:', error);
+            return [];
+        }
+    }
+
+    // Load reports from localStorage (fallback)
+    async loadReportsLocal(userId, isLeader) {
+        try {
+            const allReports = this.getLocalReports();
             const reportsArray = Object.values(allReports);
             
             if (isLeader) {
-                // Leaders can see all reports
-                console.log('User is leader - showing all reports:', reportsArray.length);
-                return reportsArray;
+                console.log('👑 Leader view - showing all reports:', reportsArray.length);
+                return reportsArray.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             } else {
-                // Regular users only see their own reports
                 const userReports = reportsArray.filter(report => report.authorId === userId);
-                console.log('User reports filtered:', userReports.length);
-                return userReports;
+                console.log('👤 User reports:', userReports.length);
+                return userReports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             }
         } catch (error) {
-            console.error('Error loading reports:', error);
-            // Return empty array instead of throwing
+            console.error('❌ Error loading local reports:', error);
             return [];
         }
     }
@@ -160,6 +175,8 @@ class ReportsService {
     // Create a new report
     async createReport(reportData) {
         try {
+            console.log('📝 Creating report...', reportData.title);
+            
             // Validate required fields
             if (!reportData.title || !reportData.description || !reportData.missionDate || !reportData.status) {
                 return {
@@ -168,16 +185,8 @@ class ReportsService {
                 };
             }
 
-            // Get current user from auth service
-            // Try to get existing auth service instance or create new one
-            let authService;
-            if (window.authServiceInstance) {
-                authService = window.authServiceInstance;
-            } else {
-                authService = new AuthService();
-                // Initialize the auth service to check existing session
-                authService.checkSession();
-            }
+            // Get current user
+            const authService = window.authServiceInstance || new AuthService();
             const currentUser = authService.getCurrentUser();
             
             if (!currentUser) {
@@ -187,68 +196,68 @@ class ReportsService {
                 };
             }
 
-            // Generate unique ID and timestamps
-            const reportId = this.generateReportId();
-            const now = new Date().toISOString();
-
-            // Create report object
-            const newReport = {
-                id: reportId,
+            // Prepare report data
+            const reportToCreate = {
                 title: reportData.title.trim(),
                 description: reportData.description.trim(),
                 missionDate: reportData.missionDate,
                 status: reportData.status,
-                authorId: currentUser.id,
-                authorName: currentUser.name || currentUser.username,
-                createdAt: now,
-                updatedAt: now,
-                // Compartilhamento removido
-                isPublic: false
+                authorName: currentUser.name || currentUser.username
             };
 
-            // Load existing local reports
+            // Try Firebase first, fallback to localStorage
+            if (this.useFirebase && this.firebaseReports) {
+                console.log('🔥 Using Firebase to create report');
+                return await this.firebaseReports.createReport(reportToCreate, currentUser.id);
+            } else {
+                console.log('💾 Using localStorage to create report');
+                return await this.createReportLocal(reportToCreate, currentUser);
+            }
+
+        } catch (error) {
+            console.error('❌ Error creating report:', error);
+            return {
+                success: false,
+                message: 'Erro interno do sistema: ' + error.message
+            };
+        }
+    }
+
+    // Create report in localStorage (fallback)
+    async createReportLocal(reportData, currentUser) {
+        try {
+            const reportId = this.generateReportId();
+            const now = new Date().toISOString();
+
+            const newReport = {
+                id: reportId,
+                ...reportData,
+                authorId: currentUser.id,
+                createdAt: now,
+                updatedAt: now,
+                isShared: false,
+                sharedWith: []
+            };
+
+            // Save to localStorage
             const localReports = this.getLocalReports();
-            
-            // Add new report
             localReports[reportId] = newReport;
             
-            // Save to localStorage
             if (!this.saveLocalReports(localReports)) {
-                return {
-                    success: false,
-                    message: 'Erro ao salvar relatório'
-                };
+                throw new Error('Erro ao salvar no localStorage');
             }
-
-            // Sync to cloud if available
-            let syncMessage = 'Relatório criado com sucesso!';
-            if (this.syncService) {
-                try {
-                    const syncResult = await this.syncService.syncReport(newReport);
-                    if (syncResult.synced) {
-                        syncMessage = 'Relatório criado e salvo na nuvem!';
-                    } else {
-                        syncMessage = 'Relatório criado localmente - será sincronizado quando online';
-                    }
-                } catch (syncError) {
-                    console.warn('Sync error:', syncError);
-                    syncMessage = 'Relatório criado localmente - erro na sincronização';
-                }
-            }
-
-            // Compartilhamento removido - agora só compartilha quando usuário escolher explicitamente
 
             return {
                 success: true,
-                message: syncMessage,
+                message: 'Relatório criado localmente!',
                 report: newReport
             };
 
         } catch (error) {
-            console.error('Error creating report:', error);
+            console.error('❌ Error creating local report:', error);
             return {
                 success: false,
-                message: 'Erro interno do sistema'
+                message: 'Erro ao criar relatório local: ' + error.message
             };
         }
     }
@@ -370,6 +379,152 @@ class ReportsService {
                 success: true,
                 message: 'Relatório excluído com sucesso!'
             };
+        }
+    }
+    // Share a report with other users
+    async shareReport(reportId, targetUserIds, authorId) {
+        try {
+            console.log('🔗 Sharing report:', reportId, 'with users:', targetUserIds);
+            
+            if (this.useFirebase && this.firebaseReports) {
+                console.log('🔥 Using Firebase to share report');
+                return await this.firebaseReports.shareReport(reportId, targetUserIds, authorId);
+            } else {
+                console.log('💾 Using localStorage to share report');
+                return await this.shareReportLocal(reportId, targetUserIds, authorId);
+            }
+
+        } catch (error) {
+            console.error('❌ Error sharing report:', error);
+            return {
+                success: false,
+                message: 'Erro ao compartilhar relatório: ' + error.message
+            };
+        }
+    }
+
+    // Share report locally (fallback)
+    async shareReportLocal(reportId, targetUserIds, authorId) {
+        try {
+            // For localStorage, we'll use a simple shared reports structure
+            const sharedReports = JSON.parse(localStorage.getItem('opus_vitalis_shared_reports') || '{}');
+            
+            targetUserIds.forEach(userId => {
+                if (!sharedReports[userId]) {
+                    sharedReports[userId] = [];
+                }
+                if (!sharedReports[userId].includes(reportId)) {
+                    sharedReports[userId].push(reportId);
+                }
+            });
+            
+            localStorage.setItem('opus_vitalis_shared_reports', JSON.stringify(sharedReports));
+            
+            return {
+                success: true,
+                message: `Relatório compartilhado com ${targetUserIds.length} usuário${targetUserIds.length > 1 ? 's' : ''}!`
+            };
+
+        } catch (error) {
+            console.error('❌ Error sharing report locally:', error);
+            return {
+                success: false,
+                message: 'Erro ao compartilhar relatório localmente'
+            };
+        }
+    }
+
+    // Load shared reports for a user
+    async loadSharedReports(userId) {
+        try {
+            console.log('📥 Loading shared reports for user:', userId);
+            
+            if (this.useFirebase && this.firebaseReports) {
+                console.log('🔥 Using Firebase to load shared reports');
+                return await this.firebaseReports.loadSharedReports(userId);
+            } else {
+                console.log('💾 Using localStorage to load shared reports');
+                return await this.loadSharedReportsLocal(userId);
+            }
+
+        } catch (error) {
+            console.error('❌ Error loading shared reports:', error);
+            return [];
+        }
+    }
+
+    // Load shared reports from localStorage (fallback)
+    async loadSharedReportsLocal(userId) {
+        try {
+            const sharedReports = JSON.parse(localStorage.getItem('opus_vitalis_shared_reports') || '{}');
+            const userSharedIds = sharedReports[userId] || [];
+            
+            const allReports = this.getLocalReports();
+            const sharedReportsArray = userSharedIds
+                .map(reportId => allReports[reportId])
+                .filter(report => report !== undefined);
+            
+            return sharedReportsArray.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        } catch (error) {
+            console.error('❌ Error loading local shared reports:', error);
+            return [];
+        }
+    }
+
+    // Get available users for sharing
+    async getAvailableUsers(currentUserId) {
+        try {
+            if (this.useFirebase && this.firebaseReports) {
+                return await this.firebaseReports.getAvailableUsers(currentUserId);
+            } else {
+                const users = await this.dataLoader.loadUsers();
+                return Object.values(users)
+                    .filter(user => user.id !== currentUserId)
+                    .sort((a, b) => a.name.localeCompare(b.name));
+            }
+        } catch (error) {
+            console.error('❌ Error loading available users:', error);
+            return [];
+        }
+    }
+
+    // Get notifications for a user
+    async getNotificationsForUser(userId) {
+        try {
+            if (this.useFirebase && this.firebaseReports) {
+                return await this.firebaseReports.getNotifications(userId);
+            } else {
+                // Fallback to localStorage notifications
+                const notifications = JSON.parse(localStorage.getItem('opus_vitalis_notifications') || '{}');
+                return Object.values(notifications)
+                    .filter(notification => notification.recipientId === userId)
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            }
+        } catch (error) {
+            console.error('❌ Error loading notifications:', error);
+            return [];
+        }
+    }
+
+    // Mark notification as read
+    async markNotificationAsRead(notificationId) {
+        try {
+            if (this.useFirebase && this.firebaseReports) {
+                return await this.firebaseReports.markNotificationAsRead(notificationId);
+            } else {
+                // Fallback to localStorage
+                const notifications = JSON.parse(localStorage.getItem('opus_vitalis_notifications') || '{}');
+                if (notifications[notificationId]) {
+                    notifications[notificationId].read = true;
+                    localStorage.setItem('opus_vitalis_notifications', JSON.stringify(notifications));
+                    return true;
+                }
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ Error marking notification as read:', error);
+            return false;
         }
     }
 }
