@@ -122,7 +122,9 @@
 
     <!-- Scripts -->
     <script src="scripts/utils.js"></script>
+    <script src="scripts/data-loader.js"></script>
     <script src="scripts/auth.js"></script>
+    <script src="scripts/session-guard.js"></script>
     <script src="scripts/reports.js"></script>
     <script src="scripts/teams.js"></script>
     <script>
@@ -196,26 +198,48 @@
             setupLogoutHandler() {
                 const logoutBtn = document.getElementById('logout-btn');
                 if (logoutBtn) {
+                    console.log('Logout button found, setting up handler');
                     logoutBtn.addEventListener('click', (e) => {
                         e.preventDefault();
+                        console.log('Logout button clicked');
                         this.handleLogout();
                     });
+                } else {
+                    console.error('Logout button not found!');
                 }
             }
 
             // Handle logout with confirmation
             handleLogout() {
+                console.log('handleLogout called');
                 if (confirm('Tem certeza que deseja sair?')) {
+                    console.log('User confirmed logout');
                     try {
+                        // Clear current user first
+                        this.currentUser = null;
+                        
+                        // Call auth service logout
                         this.authService.handleLogout();
+                        
+                        console.log('Logout completed successfully');
                     } catch (error) {
                         console.error('Error during logout:', error);
                         Utils.showMessage('Erro ao fazer logout. Redirecionando...', 'error');
-                        // Force redirect even if logout fails
+                        
+                        // Force clear session and redirect even if logout fails
+                        try {
+                            localStorage.removeItem('ordem_paranormal_session');
+                            this.currentUser = null;
+                        } catch (clearError) {
+                            console.error('Error clearing session:', clearError);
+                        }
+                        
                         setTimeout(() => {
                             window.location.href = 'login.html';
                         }, 2000);
                     }
+                } else {
+                    console.log('User cancelled logout');
                 }
             }
 
@@ -334,6 +358,14 @@
 
         // Initialize dashboard when DOM is loaded
         document.addEventListener('DOMContentLoaded', async function() {
+            // Double-check session before initializing dashboard
+            const authService = new AuthService();
+            if (!authService.checkSession()) {
+                console.log('No valid session found, redirecting to login');
+                window.location.href = 'login.html';
+                return;
+            }
+
             const dashboard = new DashboardController();
             await dashboard.init();
             dashboard.startSessionVerification();

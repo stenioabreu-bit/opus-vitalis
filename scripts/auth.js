@@ -122,9 +122,38 @@ class AuthService {
 
     // Handle logout process
     handleLogout() {
-        this.currentUser = null;
-        localStorage.removeItem(this.sessionKey);
-        window.location.href = 'login.html';
+        try {
+            console.log('Starting logout process...');
+            
+            // Clear current user
+            this.currentUser = null;
+            
+            // Remove session from localStorage
+            localStorage.removeItem(this.sessionKey);
+            
+            // Also clear any other related data
+            localStorage.removeItem('ordem_paranormal_reports');
+            localStorage.removeItem('ordem_paranormal_notifications');
+            
+            console.log('Session data cleared successfully');
+            
+            // Redirect to login page
+            window.location.href = 'login.html';
+            
+        } catch (error) {
+            console.error('Error during logout:', error);
+            
+            // Force clear and redirect even if there's an error
+            try {
+                this.currentUser = null;
+                localStorage.clear(); // Clear all localStorage as last resort
+            } catch (clearError) {
+                console.error('Error clearing localStorage:', clearError);
+            }
+            
+            // Force redirect
+            window.location.href = 'login.html';
+        }
     }
 
     // Check if user has active session
@@ -132,6 +161,7 @@ class AuthService {
         try {
             const sessionData = localStorage.getItem(this.sessionKey);
             if (!sessionData) {
+                this.currentUser = null;
                 return false;
             }
 
@@ -140,7 +170,24 @@ class AuthService {
             // Validate session data structure
             if (!userData || !userData.id || !userData.username) {
                 console.warn('Invalid session data found, clearing session');
-                localStorage.removeItem(this.sessionKey);
+                this.currentUser = null;
+                try {
+                    localStorage.removeItem(this.sessionKey);
+                } catch (removeError) {
+                    console.error('Error removing invalid session:', removeError);
+                }
+                return false;
+            }
+
+            // Validate required fields
+            if (!userData.name && !userData.username) {
+                console.warn('Session missing required user data');
+                this.currentUser = null;
+                try {
+                    localStorage.removeItem(this.sessionKey);
+                } catch (removeError) {
+                    console.error('Error removing incomplete session:', removeError);
+                }
                 return false;
             }
 
@@ -148,6 +195,8 @@ class AuthService {
             return true;
         } catch (error) {
             console.error('Error checking session:', error);
+            this.currentUser = null;
+            
             // Clear corrupted session data
             try {
                 localStorage.removeItem(this.sessionKey);

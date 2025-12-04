@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Final - Correções de Login e Logout</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="page-header" style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h1 style="color: var(--accent-blue);">Teste Final - Correções</h1>
+            <p style="color: var(--text-secondary);">Verificando se os problemas foram resolvidos</p>
+        </div>
+        
+        <div id="message-container"></div>
+        
+        <!-- Test 1: Login Protection -->
+        <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3 style="color: var(--accent-blue);">Teste 1: Proteção de Login</h3>
+            <p style="color: var(--text-secondary);">Verificando se páginas protegidas redirecionam quando não há login</p>
+            
+            <div class="form-group">
+                <button id="clear-session" class="btn btn-secondary">Limpar Sessão</button>
+                <button id="test-dashboard-access" class="btn btn-primary">Tentar Acessar Dashboard</button>
+                <button id="test-reports-access" class="btn btn-primary">Tentar Acessar Relatórios</button>
+            </div>
+            
+            <div id="protection-results" style="margin-top: 15px; font-family: monospace;"></div>
+        </div>
+        
+        <!-- Test 2: Logout Functionality -->
+        <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3 style="color: var(--accent-blue);">Teste 2: Funcionalidade de Logout</h3>
+            <p style="color: var(--text-secondary);">Verificando se o botão de logout funciona corretamente</p>
+            
+            <div class="form-group">
+                <button id="do-login" class="btn btn-primary">Fazer Login</button>
+                <button id="test-logout" class="btn btn-danger">Testar Logout</button>
+                <button id="verify-logout-complete" class="btn btn-secondary">Verificar Logout</button>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <strong>Status Atual:</strong>
+                <span id="current-status" style="margin-left: 10px; color: var(--text-secondary);">Não logado</span>
+            </div>
+            
+            <div id="logout-results" style="margin-top: 15px; font-family: monospace;"></div>
+        </div>
+        
+        <!-- Test 3: Session Management -->
+        <div style="background: var(--card-bg); padding: 20px; border-radius: 8px;">
+            <h3 style="color: var(--accent-blue);">Teste 3: Gerenciamento de Sessão</h3>
+            <p style="color: var(--text-secondary);">Verificando se a sessão é gerenciada corretamente</p>
+            
+            <div class="form-group">
+                <button id="check-session-status" class="btn btn-secondary">Verificar Sessão</button>
+                <button id="simulate-corruption" class="btn btn-secondary">Simular Corrupção</button>
+                <button id="test-recovery" class="btn btn-secondary">Testar Recuperação</button>
+            </div>
+            
+            <div id="session-results" style="margin-top: 15px; font-family: monospace;"></div>
+        </div>
+    </div>
+
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script>
+        let authService;
+        
+        function addResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'success' ? 'var(--success-green)' : 
+                         type === 'error' ? 'var(--error-red)' : 
+                         type === 'warning' ? '#ffc107' : 'var(--text-primary)';
+            
+            container.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function updateStatus() {
+            const statusSpan = document.getElementById('current-status');
+            
+            if (authService && authService.checkSession()) {
+                const user = authService.getCurrentUser();
+                if (user) {
+                    statusSpan.textContent = `Logado como: ${user.name || user.username}`;
+                    statusSpan.style.color = 'var(--success-green)';
+                } else {
+                    statusSpan.textContent = 'Sessão inválida';
+                    statusSpan.style.color = 'var(--error-red)';
+                }
+            } else {
+                statusSpan.textContent = 'Não logado';
+                statusSpan.style.color = 'var(--text-secondary)';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            authService = new AuthService();
+            updateStatus();
+            
+            // Test 1: Login Protection
+            document.getElementById('clear-session').addEventListener('click', function() {
+                try {
+                    localStorage.removeItem('ordem_paranormal_session');
+                    authService.currentUser = null;
+                    addResult('protection-results', '✓ Sessão limpa', 'success');
+                    updateStatus();
+                } catch (error) {
+                    addResult('protection-results', `✗ Erro ao limpar sessão: ${error.message}`, 'error');
+                }
+            });
+            
+            document.getElementById('test-dashboard-access').addEventListener('click', function() {
+                addResult('protection-results', 'Testando acesso ao dashboard sem login...', 'info');
+                
+                // Simulate dashboard protection check
+                if (!authService.checkSession()) {
+                    addResult('protection-results', '✓ Dashboard corretamente bloqueado - redirecionaria para login', 'success');
+                } else {
+                    addResult('protection-results', '✗ Dashboard permitiu acesso sem login válido', 'error');
+                }
+            });
+            
+            document.getElementById('test-reports-access').addEventListener('click', function() {
+                addResult('protection-results', 'Testando acesso aos relatórios sem login...', 'info');
+                
+                // Simulate reports protection check
+                if (!authService.checkSession()) {
+                    addResult('protection-results', '✓ Relatórios corretamente bloqueados - redirecionaria para login', 'success');
+                } else {
+                    addResult('protection-results', '✗ Relatórios permitiram acesso sem login válido', 'error');
+                }
+            });
+            
+            // Test 2: Logout Functionality
+            document.getElementById('do-login').addEventListener('click', async function() {
+                try {
+                    addResult('logout-results', 'Fazendo login...', 'info');
+                    const result = await authService.handleLogin('bella_evans', 'sãocristovão2016');
+                    
+                    if (result.success) {
+                        addResult('logout-results', '✓ Login realizado com sucesso', 'success');
+                        updateStatus();
+                    } else {
+                        addResult('logout-results', `✗ Erro no login: ${result.message}`, 'error');
+                    }
+                } catch (error) {
+                    addResult('logout-results', `✗ Erro no login: ${error.message}`, 'error');
+                }
+            });
+            
+            document.getElementById('test-logout').addEventListener('click', function() {
+                if (!authService.checkSession()) {
+                    addResult('logout-results', '⚠ Faça login primeiro!', 'warning');
+                    return;
+                }
+                
+                try {
+                    addResult('logout-results', 'Testando logout...', 'info');
+                    
+                    // Override redirect to capture it
+                    let redirectUrl = null;
+                    const originalHref = window.location.href;
+                    
+                    Object.defineProperty(window.location, 'href', {
+                        set: function(url) {
+                            redirectUrl = url;
+                            addResult('logout-results', `Redirecionamento capturado: ${url}`, 'info');
+                        },
+                        get: function() {
+                            return originalHref;
+                        },
+                        configurable: true
+                    });
+                    
+                    // Perform logout
+                    authService.handleLogout();
+                    
+                    // Check results after a brief delay
+                    setTimeout(() => {
+                        const sessionAfter = authService.checkSession();
+                        const userAfter = authService.getCurrentUser();
+                        const localStorageAfter = localStorage.getItem('ordem_paranormal_session');
+                        
+                        if (!sessionAfter && !userAfter && !localStorageAfter) {
+                            addResult('logout-results', '✓ Logout executado corretamente', 'success');
+                        } else {
+                            addResult('logout-results', '✗ Logout não limpou completamente a sessão', 'error');
+                        }
+                        
+                        if (redirectUrl === 'login.html') {
+                            addResult('logout-results', '✓ Redirecionamento correto para login', 'success');
+                        } else {
+                            addResult('logout-results', `✗ Redirecionamento incorreto: ${redirectUrl}`, 'error');
+                        }
+                        
+                        updateStatus();
+                    }, 100);
+                    
+                } catch (error) {
+                    addResult('logout-results', `✗ Erro no logout: ${error.message}`, 'error');
+                }
+            });
+            
+            document.getElementById('verify-logout-complete').addEventListener('click', function() {
+                const hasSession = authService.checkSession();
+                const currentUser = authService.getCurrentUser();
+                const localStorageSession = localStorage.getItem('ordem_paranormal_session');
+                
+                addResult('logout-results', '=== VERIFICAÇÃO FINAL ===', 'info');
+                addResult('logout-results', `Sessão ativa: ${hasSession}`, hasSession ? 'error' : 'success');
+                addResult('logout-results', `Usuário atual: ${currentUser ? currentUser.name : 'null'}`, currentUser ? 'error' : 'success');
+                addResult('logout-results', `localStorage: ${localStorageSession ? 'existe' : 'limpo'}`, localStorageSession ? 'error' : 'success');
+                
+                if (!hasSession && !currentUser && !localStorageSession) {
+                    addResult('logout-results', '🎉 LOGOUT FUNCIONANDO CORRETAMENTE!', 'success');
+                } else {
+                    addResult('logout-results', '❌ LOGOUT COM PROBLEMAS!', 'error');
+                }
+            });
+            
+            // Test 3: Session Management
+            document.getElementById('check-session-status').addEventListener('click', function() {
+                const hasSession = authService.checkSession();
+                const currentUser = authService.getCurrentUser();
+                const rawSession = localStorage.getItem('ordem_paranormal_session');
+                
+                addResult('session-results', `Sessão válida: ${hasSession}`, hasSession ? 'success' : 'info');
+                addResult('session-results', `Usuário carregado: ${currentUser ? 'sim' : 'não'}`, currentUser ? 'success' : 'info');
+                addResult('session-results', `Dados no localStorage: ${rawSession ? 'sim' : 'não'}`, rawSession ? 'success' : 'info');
+                
+                if (rawSession) {
+                    try {
+                        const parsed = JSON.parse(rawSession);
+                        addResult('session-results', `Dados válidos: ${parsed.id ? 'sim' : 'não'}`, parsed.id ? 'success' : 'error');
+                    } catch (e) {
+                        addResult('session-results', 'Dados corrompidos no localStorage', 'error');
+                    }
+                }
+            });
+            
+            document.getElementById('simulate-corruption').addEventListener('click', function() {
+                localStorage.setItem('ordem_paranormal_session', 'dados_corrompidos');
+                addResult('session-results', 'Simulando dados corrompidos no localStorage', 'warning');
+            });
+            
+            document.getElementById('test-recovery').addEventListener('click', function() {
+                addResult('session-results', 'Testando recuperação de dados corrompidos...', 'info');
+                
+                const canRecover = authService.checkSession();
+                
+                if (!canRecover) {
+                    addResult('session-results', '✓ Sistema detectou e limpou dados corrompidos', 'success');
+                } else {
+                    addResult('session-results', '✗ Sistema não detectou dados corrompidos', 'error');
+                }
+                
+                updateStatus();
+            });
+        });
+    </script>
+</body>
+</html>

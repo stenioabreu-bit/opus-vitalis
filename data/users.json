@@ -5,7 +5,7 @@
     "password": "sãocristovão2016",
     "name": "Bella Evans",
     "role": "agent",
-    "team": "team_alpha",
+    "team": "liderança_opus",
     "createdAt": "2024-01-01T00:00:00Z"
   },
   "melissa_kardelis": {
@@ -13,35 +13,44 @@
     "username": "melissa_kardelis",
     "password": "conceito",
     "name": "Melissa Kardelis",
-    "role": "leader",
-    "team": "team_alpha",
+    "role": "agent",
+    "team": "mimir_unit",
     "createdAt": "2024-01-01T00:00:00Z"
   },
-  "ana_costa": {
+  "tao_feng": {
     "id": "user_003",
-    "username": "ana_costa",
-    "password": "agente123",
-    "name": "Ana Costa",
+    "username": "tao_feng",
+    "password": "raiva",
+    "name": "Tao Feng",
     "role": "agent",
-    "team": "team_alpha",
+    "team": "mimir_unit",
     "createdAt": "2024-01-01T00:00:00Z"
   },
-  "pedro_santos": {
+  "jhonny_d'angelo": {
     "id": "user_004",
-    "username": "pedro_santos",
-    "password": "paranormal456",
-    "name": "Pedro Santos",
+    "username": "jhonny_d'angelo",
+    "password": "impulsivo",
+    "name": "Jhonny D'Angelo",
     "role": "agent",
-    "team": "team_beta",
+    "team": "mimir_unit",
     "createdAt": "2024-01-01T00:00:00Z"
   },
-  "maria_oliveira": {
+  "adonis_belinski": {
     "id": "user_005",
-    "username": "maria_oliveira",
-    "password": "lider789",
-    "name": "Maria Oliveira",
+    "username": "adonis_belinski",
+    "password": "ambição",
+    "name": "Adonis Belinski",
     "role": "leader",
-    "team": "team_beta",
+    "team": "mimir_unit",
+    "createdAt": "2024-01-01T00:00:00Z"
+  },
+  "miguel_crozier": {
+    "id": "user_005",
+    "username": "miguel_crozier",
+    "password": "inovação",
+    "name": "Miguel Crozier",
+    "role": "agent",
+    "team": "mimir_unit",
     "createdAt": "2024-01-01T00:00:00Z"
   }
 }

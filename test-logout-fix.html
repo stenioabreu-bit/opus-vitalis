@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Correção do Logout</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="page-header" style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h1 style="color: var(--accent-blue);">Teste de Correção do Logout</h1>
+            <p style="color: var(--text-secondary);">Verificando se o botão de logout funciona corretamente</p>
+        </div>
+        
+        <div id="message-container"></div>
+        
+        <div class="form-group">
+            <button id="login-test" class="btn btn-primary">1. Fazer Login</button>
+            <button id="check-session" class="btn btn-secondary">2. Verificar Sessão</button>
+            <button id="logout-test" class="btn btn-danger">3. Testar Logout</button>
+            <button id="verify-logout" class="btn btn-secondary">4. Verificar Logout</button>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 20px; background: var(--card-bg); border-radius: 8px;">
+            <h3 style="color: var(--accent-blue);">Status do Teste:</h3>
+            <div id="test-status" style="font-family: monospace; color: var(--text-primary);"></div>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 20px; background: var(--card-bg); border-radius: 8px;">
+            <h3 style="color: var(--accent-blue);">Simulação do Dashboard:</h3>
+            <div style="display: flex; gap: 15px; margin-top: 15px;">
+                <span style="color: var(--text-secondary);">Usuário:</span>
+                <span id="current-user" style="color: var(--success-green);">Nenhum</span>
+                <button id="dashboard-logout" class="btn btn-danger" style="margin-left: auto;" disabled>Sair (Dashboard)</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script>
+        let authService;
+        let testStep = 0;
+        
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('test-status');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'success' ? 'var(--success-green)' : 
+                         type === 'error' ? 'var(--error-red)' : 'var(--text-primary)';
+            
+            statusDiv.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            statusDiv.scrollTop = statusDiv.scrollHeight;
+        }
+        
+        function updateUserDisplay() {
+            const userSpan = document.getElementById('current-user');
+            const dashboardLogout = document.getElementById('dashboard-logout');
+            
+            if (authService && authService.checkSession()) {
+                const user = authService.getCurrentUser();
+                if (user) {
+                    userSpan.textContent = user.name || user.username;
+                    userSpan.style.color = 'var(--success-green)';
+                    dashboardLogout.disabled = false;
+                } else {
+                    userSpan.textContent = 'Sessão inválida';
+                    userSpan.style.color = 'var(--error-red)';
+                    dashboardLogout.disabled = true;
+                }
+            } else {
+                userSpan.textContent = 'Nenhum';
+                userSpan.style.color = 'var(--text-secondary)';
+                dashboardLogout.disabled = true;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            authService = new AuthService();
+            
+            updateStatus('Sistema inicializado');
+            updateUserDisplay();
+            
+            // Step 1: Login
+            document.getElementById('login-test').addEventListener('click', async function() {
+                try {
+                    updateStatus('Iniciando login...');
+                    const result = await authService.handleLogin('bella_evans', 'sãocristovão2016');
+                    
+                    if (result.success) {
+                        updateStatus('✓ Login realizado com sucesso!', 'success');
+                        updateStatus(`Usuário: ${result.user.name}`, 'success');
+                        testStep = 1;
+                    } else {
+                        updateStatus(`✗ Erro no login: ${result.message}`, 'error');
+                    }
+                } catch (error) {
+                    updateStatus(`✗ Erro no login: ${error.message}`, 'error');
+                }
+                updateUserDisplay();
+            });
+            
+            // Step 2: Check session
+            document.getElementById('check-session').addEventListener('click', function() {
+                const hasSession = authService.checkSession();
+                const currentUser = authService.getCurrentUser();
+                
+                updateStatus(`Sessão ativa: ${hasSession}`, hasSession ? 'success' : 'error');
+                updateStatus(`Usuário atual: ${currentUser ? currentUser.name : 'Nenhum'}`, currentUser ? 'success' : 'error');
+                
+                if (hasSession && currentUser) {
+                    updateStatus(`Dados da sessão: ID=${currentUser.id}, Role=${currentUser.role}`, 'info');
+                    testStep = 2;
+                }
+                updateUserDisplay();
+            });
+            
+            // Step 3: Test logout
+            document.getElementById('logout-test').addEventListener('click', function() {
+                if (testStep < 2) {
+                    updateStatus('⚠ Faça login primeiro!', 'error');
+                    return;
+                }
+                
+                try {
+                    updateStatus('Testando logout...');
+                    
+                    // Override window.location.href to prevent actual redirect during test
+                    let redirectUrl = null;
+                    const originalHref = window.location.href;
+                    
+                    Object.defineProperty(window.location, 'href', {
+                        set: function(url) {
+                            redirectUrl = url;
+                            updateStatus(`Redirecionamento interceptado: ${url}`, 'info');
+                        },
+                        get: function() {
+                            return originalHref;
+                        },
+                        configurable: true
+                    });
+                    
+                    // Perform logout
+                    authService.handleLogout();
+                    
+                    // Check results
+                    setTimeout(() => {
+                        const sessionAfter = authService.checkSession();
+                        const userAfter = authService.getCurrentUser();
+                        
+                        if (!sessionAfter && !userAfter) {
+                            updateStatus('✓ Logout executado com sucesso!', 'success');
+                            updateStatus('✓ Sessão limpa corretamente', 'success');
+                            testStep = 3;
+                        } else {
+                            updateStatus('✗ Problemas no logout:', 'error');
+                            updateStatus(`  Sessão ainda ativa: ${sessionAfter}`, 'error');
+                            updateStatus(`  Usuário ainda logado: ${userAfter ? userAfter.name : 'null'}`, 'error');
+                        }
+                        
+                        if (redirectUrl === 'login.html') {
+                            updateStatus('✓ Redirecionamento correto para login.html', 'success');
+                        } else {
+                            updateStatus(`✗ Redirecionamento incorreto: ${redirectUrl}`, 'error');
+                        }
+                        
+                        updateUserDisplay();
+                    }, 100);
+                    
+                } catch (error) {
+                    updateStatus(`✗ Erro no logout: ${error.message}`, 'error');
+                }
+            });
+            
+            // Step 4: Verify logout
+            document.getElementById('verify-logout').addEventListener('click', function() {
+                const hasSession = authService.checkSession();
+                const currentUser = authService.getCurrentUser();
+                const localStorage_session = localStorage.getItem('ordem_paranormal_session');
+                
+                updateStatus('=== VERIFICAÇÃO FINAL ===', 'info');
+                updateStatus(`Sessão ativa: ${hasSession}`, hasSession ? 'error' : 'success');
+                updateStatus(`Usuário atual: ${currentUser ? currentUser.name : 'null'}`, currentUser ? 'error' : 'success');
+                updateStatus(`localStorage session: ${localStorage_session ? 'existe' : 'null'}`, localStorage_session ? 'error' : 'success');
+                
+                if (!hasSession && !currentUser && !localStorage_session) {
+                    updateStatus('🎉 TESTE PASSOU! Logout funcionando corretamente!', 'success');
+                } else {
+                    updateStatus('❌ TESTE FALHOU! Logout não está funcionando corretamente!', 'error');
+                }
+                
+                updateUserDisplay();
+            });
+            
+            // Dashboard logout simulation
+            document.getElementById('dashboard-logout').addEventListener('click', function() {
+                if (confirm('Tem certeza que deseja sair?')) {
+                    updateStatus('Simulando logout do dashboard...');
+                    
+                    try {
+                        authService.handleLogout();
+                        updateStatus('✓ Logout do dashboard executado', 'success');
+                        updateUserDisplay();
+                    } catch (error) {
+                        updateStatus(`✗ Erro no logout do dashboard: ${error.message}`, 'error');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
