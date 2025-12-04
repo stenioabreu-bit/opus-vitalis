@@ -4,7 +4,7 @@
 class ReportsService {
     constructor() {
         this.dataLoader = new DataLoader();
-        this.localStorageKey = 'ordem_paranormal_reports';
+        this.localStorageKey = 'opus_vitalis_reports';
     }
 
     // Get all reports (combining static and localStorage data)
@@ -412,7 +412,7 @@ class ReportsService {
     // Get sharing notifications from localStorage
     getSharingNotifications() {
         try {
-            const stored = localStorage.getItem('ordem_paranormal_notifications');
+            const stored = localStorage.getItem('opus_vitalis_notifications');
             return stored ? JSON.parse(stored) : {};
         } catch (error) {
             console.error('Error loading notifications:', error);
@@ -423,7 +423,7 @@ class ReportsService {
     // Save sharing notifications to localStorage
     saveSharingNotifications(notifications) {
         try {
-            localStorage.setItem('ordem_paranormal_notifications', JSON.stringify(notifications));
+            localStorage.setItem('opus_vitalis_notifications', JSON.stringify(notifications));
             return true;
         } catch (error) {
             console.error('Error saving notifications:', error);

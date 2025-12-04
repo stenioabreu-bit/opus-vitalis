@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opus Vitalis - Showcase Completo</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--accent-crimson);
+            box-shadow: 0 0 30px var(--crimson-glow);
+        }
+        
+        .hero-title {
+            font-size: 4em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, var(--accent-crimson), var(--accent-crimson-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px var(--crimson-glow);
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .feature-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card:hover {
+            border-color: var(--accent-crimson);
+            box-shadow: 0 0 20px var(--crimson-glow);
+            transform: translateY(-5px);
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-crimson), var(--accent-crimson-light));
+        }
+        
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 20px;
+            fill: var(--accent-crimson);
+        }
+        
+        .demo-section {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            margin: 30px 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .brand-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .brand-old {
+            opacity: 0.6;
+            filter: grayscale(100%);
+        }
+        
+        .brand-new {
+            border: 2px solid var(--accent-crimson);
+            box-shadow: 0 0 15px var(--crimson-glow);
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5em;
+            }
+            
+            .brand-comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1 class="hero-title logo-text">OPUS VITALIS</h1>
+        <p style="font-size: 1.3em; color: var(--text-secondary); font-family: 'Rajdhani', sans-serif; font-weight: 500; margin-bottom: 30px;">
+            Sistema de Gestão e Relatórios - Nova Era
+        </p>
+        <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+            <svg class="icon icon-large icon-pulse" style="fill: var(--accent-crimson);"><use href="#icon-shield"></use></svg>
+            <svg class="icon icon-large icon-pulse" style="fill: var(--accent-crimson); animation-delay: 0.5s;"><use href="#icon-skull"></use></svg>
+            <svg class="icon icon-large icon-pulse" style="fill: var(--accent-crimson); animation-delay: 1s;"><use href="#icon-dashboard"></use></svg>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Rebranding Section -->
+        <div class="demo-section">
+            <h2 style="color: var(--accent-crimson); font-family: 'Orbitron', monospace; text-align: center; margin-bottom: 30px;">
+                <svg class="icon icon-large"><use href="#icon-info"></use></svg>
+                Rebranding Completo
+            </h2>
+            
+            <div class="brand-comparison">
+                <div class="feature-card brand-old">
+                    <h3 style="color: #00d4ff;">Ordem Paranormal</h3>
+                    <p>Tema anterior com azul tecnológico</p>
+                    <div style="background: #00d4ff; height: 20px; border-radius: 4px; margin: 10px 0;"></div>
+                    <p style="font-family: Arial, sans-serif; color: var(--text-secondary);">Tipografia padrão</p>
+                </div>
+                
+                <div class="feature-card brand-new">
+                    <h3 style="color: var(--accent-crimson); font-family: 'Orbitron', monospace;">Opus Vitalis</h3>
+                    <p style="font-family: 'Rajdhani', sans-serif;">Novo tema com vermelho carmesim</p>
+                    <div style="background: linear-gradient(90deg, var(--accent-crimson), var(--accent-crimson-light)); height: 20px; border-radius: 4px; margin: 10px 0; box-shadow: 0 0 10px var(--crimson-glow);"></div>
+                    <p style="font-family: 'Rajdhani', sans-serif; color: var(--text-secondary);">Tipografia moderna</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="feature-grid">
+            <div class="feature-card">
+                <svg class="feature-icon"><use href="#icon-user"></use></svg>
+                <h3 style="color: var(--accent-crimson); font-family: 'Orbitron', monospace;">Autenticação Segura</h3>
+                <p style="font-family: 'Rajdhani', sans-serif;">Sistema de login robusto com proteção de sessão e validação completa.</p>
+                <ul style="font-family: 'Rajdhani', sans-serif; color: var(--text-secondary);">
+                    <li>Validação de credenciais</li>
+                    <li>Gerenciamento de sessão</li>
+                    <li>Proteção contra acesso não autorizado</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <svg class="feature-icon"><use href="#icon-report"></use></svg>
+                <h3 style="color: var(--accent-crimson); font-family: 'Orbitron', monospace;">Gestão de Relatórios</h3>
+                <p style="font-family: 'Rajdhani', sans-serif;">Criação, edição e organização completa de relatórios de missões.</p>
+                <ul style="font-family: 'Rajdhani', sans-serif; color: var(--text-secondary);">
+                    <li>Criação intuitiva</li>
+                    <li>Edição e exclusão</li>
+                    <li>Organização cronológica</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <svg class="feature-icon"><use href="#icon-share"></use></svg>
+                <h3 style="color: var(--accent-crimson); font-family: 'Orbitron', monospace;">Compartilhamento</h3>
+                <p style="font-family: 'Rajdhani', sans-serif;">Sistema avançado de compartilhamento entre equipes e hierarquias.</p>
+                <ul style="font-family: 'Rajdhani', sans-serif; color: var(--text-secondary);">
+                    <li>Compartilhamento seletivo</li>
+                    <li>Controle de permissões</li>
+                    <li>Notificações automáticas</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <svg class="feature-icon"><use href="#icon-team"></use></svg>
+                <h3 style="color: var(--accent-crimson); font-family: 'Orbitron', monospace;">Hierarquia de Equipes</h3>
+                <p style="font-family: 'Rajdhani', sans-serif;">Gestão completa de equipes com diferentes níveis de acesso.</p>
+                <ul style="font-family: 'Rajdhani', sans-serif; color: var(--text-secondary);">
+                    <li>Líderes e agentes</li>
+                    <li>Acesso hierárquico</li>
+                    <li>Relatórios de equipe</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <svg class="feature-icon"><use href="#icon-shield"></use></svg>
+                <h3 style="color: var(--accent-crimson); font-family: 'Orbitron', monospace;">Segurança Avançada</h3>
+                <p style="font-family: 'Rajdhani', sans-serif;">Proteção robusta com validação e tratamento de erros.</p>
+                <ul style="font-family: 'Rajdhani', sans-serif; color: var(--text-secondary);">
+                    <li>Validação de dados</li>
+                    <li>Tratamento de erros</li>
+                    <li>Recuperação automática</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <svg class="feature-icon"><use href="#icon-dashboard"></use></svg>
+                <h3 style="color: var(--accent-crimson); font-family: 'Orbitron', monospace;">Interface Moderna</h3>
+                <p style="font-family: 'Rajdhani', sans-serif;">Design responsivo com tema carmesim e tipografia profissional.</p>
+                <ul style="font-family: 'Rajdhani', sans-serif; color: var(--text-secondary);">
+                    <li>Design responsivo</li>
+                    <li>Ícones SVG profissionais</li>
+                    <li>Animações suaves</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Interactive Demo -->
+        <div class="demo-section">
+            <h2 style="color: var(--accent-crimson); font-family: 'Orbitron', monospace; text-align: center; margin-bottom: 30px;">
+                <svg class="icon icon-large"><use href="#icon-create"></use></svg>
+                Demonstração Interativa
+            </h2>
+            
+            <div id="demo-container" style="margin: 20px 0; min-height: 60px;"></div>
+            
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                <button id="demo-login" class="btn btn-primary">
+                    <svg class="icon"><use href="#icon-user"></use></svg>
+                    Simular Login
+                </button>
+                <button id="demo-success" class="btn btn-secondary">
+                    <svg class="icon"><use href="#icon-success"></use></svg>
+                    Mostrar Sucesso
+                </button>
+                <button id="demo-error" class="btn btn-secondary">
+                    <svg class="icon"><use href="#icon-error"></use></svg>
+                    Mostrar Erro
+                </button>
+                <button id="demo-loading" class="btn btn-secondary">
+                    <svg class="icon"><use href="#icon-loading"></use></svg>
+                    Testar Loading
+                </button>
+            </div>
+        </div>
+
+        <!-- Migration Info -->
+        <div class="demo-section">
+            <h2 style="color: var(--accent-crimson); font-family: 'Orbitron', monospace; text-align: center; margin-bottom: 30px;">
+                <svg class="icon icon-large"><use href="#icon-info"></use></svg>
+                Migração Automática
+            </h2>
+            
+            <div style="text-align: center; font-family: 'Rajdhani', sans-serif;">
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    O sistema migra automaticamente os dados existentes para a nova identidade Opus Vitalis.
+                </p>
+                
+                <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="color: var(--accent-crimson); margin-bottom: 15px;">Chaves Migradas:</h4>
+                    <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 15px; align-items: center; font-family: monospace; font-size: 0.9em;">
+                        <span style="color: var(--text-secondary);">ordem_paranormal_session</span>
+                        <svg class="icon" style="fill: var(--accent-crimson);"><use href="#icon-share"></use></svg>
+                        <span style="color: var(--success-green);">opus_vitalis_session</span>
+                        
+                        <span style="color: var(--text-secondary);">ordem_paranormal_reports</span>
+                        <svg class="icon" style="fill: var(--accent-crimson);"><use href="#icon-share"></use></svg>
+                        <span style="color: var(--success-green);">opus_vitalis_reports</span>
+                        
+                        <span style="color: var(--text-secondary);">ordem_paranormal_notifications</span>
+                        <svg class="icon" style="fill: var(--accent-crimson);"><use href="#icon-share"></use></svg>
+                        <span style="color: var(--success-green);">opus_vitalis_notifications</span>
+                    </div>
+                </div>
+                
+                <button id="test-migration" class="btn btn-primary">
+                    <svg class="icon"><use href="#icon-success"></use></svg>
+                    Testar Migração
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; padding: 40px 0; border-top: 1px solid var(--border-color); margin-top: 40px;">
+            <h2 class="logo-text" style="color: var(--accent-crimson); margin-bottom: 10px; text-shadow: 0 0 10px var(--crimson-glow);">
+                OPUS VITALIS
+            </h2>
+            <p style="color: var(--text-secondary); font-family: 'Rajdhani', sans-serif;">
+                Sistema de Gestão e Relatórios - Versão 2.0
+            </p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/migration.js"></script>
+    <script src="scripts/icons.js"></script>
+    <script src="scripts/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Demo buttons
+            document.getElementById('demo-login').addEventListener('click', function() {
+                Utils.showMessage('Bem-vindo ao Opus Vitalis! Login realizado com sucesso.', 'success', 'demo-container');
+            });
+            
+            document.getElementById('demo-success').addEventListener('click', function() {
+                Utils.showMessage('Operação concluída com sucesso no novo sistema Opus Vitalis!', 'success', 'demo-container');
+            });
+            
+            document.getElementById('demo-error').addEventListener('click', function() {
+                Utils.showMessage('Exemplo de mensagem de erro com nova identidade visual.', 'error', 'demo-container');
+            });
+            
+            document.getElementById('demo-loading').addEventListener('click', function() {
+                Utils.showLoading('demo-loading', 'Processando...');
+                
+                setTimeout(() => {
+                    Utils.hideLoading('demo-loading');
+                    Utils.showMessage('Carregamento concluído com sucesso!', 'success', 'demo-container');
+                }, 3000);
+            });
+            
+            // Migration test
+            document.getElementById('test-migration').addEventListener('click', function() {
+                // Simulate old data
+                localStorage.setItem('ordem_paranormal_session', JSON.stringify({test: 'data'}));
+                localStorage.setItem('ordem_paranormal_reports', JSON.stringify({test: 'reports'}));
+                
+                // Run migration
+                if (window.opusVitalisMigration) {
+                    const success = window.opusVitalisMigration.migrate();
+                    
+                    if (success) {
+                        Utils.showMessage('Migração testada com sucesso! Dados migrados para Opus Vitalis.', 'success', 'demo-container');
+                    } else {
+                        Utils.showMessage('Erro durante o teste de migração.', 'error', 'demo-container');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

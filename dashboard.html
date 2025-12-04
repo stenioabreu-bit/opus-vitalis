@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ordem Paranormal - Dashboard</title>
+    <title>Opus Vitalis - Dashboard</title>
     <link rel="stylesheet" href="assets/css/styles.css">
     <style>
         .dashboard-header {
@@ -18,8 +18,10 @@
         }
         
         .welcome-message h2 {
-            color: var(--accent-blue);
+            color: var(--accent-crimson);
             margin-bottom: 5px;
+            font-family: 'Orbitron', monospace;
+            text-shadow: 0 0 8px var(--crimson-glow);
         }
         
         .nav-menu {
@@ -49,9 +51,11 @@
         
         .stat-number {
             font-size: 2em;
-            color: var(--accent-blue);
+            color: var(--accent-crimson);
             font-weight: bold;
             margin-bottom: 10px;
+            font-family: 'Orbitron', monospace;
+            text-shadow: 0 0 5px var(--crimson-glow);
         }
         
         .recent-activity {
@@ -79,15 +83,30 @@
         <div class="dashboard-header">
             <div class="welcome-message">
                 <h2>Bem-vindo, <span id="user-name">Agente</span></h2>
-                <p style="color: var(--text-secondary);">Central de Comando - Ordem Paranormal</p>
+                <p style="color: var(--text-secondary);">Central de Comando - Opus Vitalis</p>
             </div>
             
             <div class="nav-menu" id="nav-menu">
-                <a href="create-report.html" class="btn btn-primary">Criar Relatório</a>
-                <a href="reports.html" class="btn btn-secondary">Meus Relatórios</a>
-                <a href="shared-reports.html" class="btn btn-secondary">Relatórios Compartilhados</a>
-                <a href="team-reports.html" class="btn btn-secondary" id="team-reports-link" style="display: none;">Relatórios da Equipe</a>
-                <button id="logout-btn" class="btn btn-danger">Sair</button>
+                <a href="create-report.html" class="btn btn-primary">
+                    <svg class="icon"><use href="#icon-create"></use></svg>
+                    Criar Relatório
+                </a>
+                <a href="reports.html" class="btn btn-secondary">
+                    <svg class="icon"><use href="#icon-report"></use></svg>
+                    Meus Relatórios
+                </a>
+                <a href="shared-reports.html" class="btn btn-secondary">
+                    <svg class="icon"><use href="#icon-share"></use></svg>
+                    Relatórios Compartilhados
+                </a>
+                <a href="team-reports.html" class="btn btn-secondary" id="team-reports-link" style="display: none;">
+                    <svg class="icon"><use href="#icon-team"></use></svg>
+                    Relatórios da Equipe
+                </a>
+                <button id="logout-btn" class="btn btn-danger">
+                    <svg class="icon"><use href="#icon-logout"></use></svg>
+                    Sair
+                </button>
             </div>
         </div>
         
@@ -111,7 +130,10 @@
         </div>
         
         <div class="recent-activity">
-            <h3 style="color: var(--accent-blue); margin-bottom: 20px;">Atividade Recente</h3>
+            <h3 style="color: var(--accent-crimson); margin-bottom: 20px; font-family: 'Orbitron', monospace; text-shadow: 0 0 5px var(--crimson-glow);">
+                <svg class="icon icon-large"><use href="#icon-dashboard"></use></svg>
+                Atividade Recente
+            </h3>
             <div id="recent-activity-list">
                 <p style="color: var(--text-secondary); text-align: center;">
                     Nenhuma atividade recente encontrada.
@@ -121,6 +143,8 @@
     </div>
 
     <!-- Scripts -->
+    <script src="scripts/migration.js"></script>
+    <script src="scripts/icons.js"></script>
     <script src="scripts/utils.js"></script>
     <script src="scripts/data-loader.js"></script>
     <script src="scripts/auth.js"></script>
@@ -228,7 +252,7 @@
                         
                         // Force clear session and redirect even if logout fails
                         try {
-                            localStorage.removeItem('ordem_paranormal_session');
+                            localStorage.removeItem('opus_vitalis_session');
                             this.currentUser = null;
                         } catch (clearError) {
                             console.error('Error clearing session:', clearError);

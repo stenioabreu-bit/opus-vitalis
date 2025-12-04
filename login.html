@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ordem Paranormal - Login</title>
+    <title>Opus Vitalis - Login</title>
     <link rel="stylesheet" href="assets/css/styles.css">
+
 </head>
 <body>
     <div class="centered-container">
         <div class="form-container">
             <div class="text-center mb-2">
-                <h1 style="color: var(--accent-blue); margin-bottom: 10px;">ORDEM PARANORMAL</h1>
-                <p style="color: var(--text-secondary);">Sistema de Autenticação</p>
+                <h1 class="logo-text" style="color: var(--accent-crimson); margin-bottom: 10px; text-shadow: 0 0 10px var(--crimson-glow);">OPUS VITALIS</h1>
+                <p style="color: var(--text-secondary); font-family: 'Rajdhani', sans-serif; font-weight: 500;">Sistema de Gestão e Relatórios</p>
             </div>
             
             <div id="message-container"></div>
@@ -37,6 +38,8 @@
     </div>
 
     <!-- Scripts -->
+    <script src="scripts/migration.js"></script>
+    <script src="scripts/icons.js"></script>
     <script src="scripts/utils.js"></script>
     <script src="scripts/data-loader.js"></script>
     <script src="scripts/auth.js"></script>
@@ -45,6 +48,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             const authService = new AuthService();
             const loginForm = document.getElementById('login-form');
+            
+
             
             // Check if user is already logged in
             if (authService.checkSession()) {

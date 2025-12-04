@@ -1,16 +1,21 @@
-/* Ordem Paranormal Theme - Main Styles */
+/* Opus Vitalis Theme - Main Styles */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
 /* Color Variables */
 :root {
   --bg-primary: #000000;
   --bg-secondary: #0a0a0a;
-  --accent-blue: #00d4ff;
+  --accent-crimson: #8B0000;
+  --accent-crimson-light: #B22222;
+  --accent-crimson-dark: #660000;
   --error-red: #cc0000;
   --success-green: #4a7c59;
   --text-primary: #ffffff;
   --text-secondary: #e0e0e0;
-  --border-color: #1a1a2e;
+  --border-color: #2a1a1a;
   --card-bg: rgba(26, 26, 26, 0.8);
+  --crimson-glow: rgba(139, 0, 0, 0.3);
+  --crimson-glow-strong: rgba(139, 0, 0, 0.6);
 }
 
 /* Base Styles */
@@ -21,11 +26,25 @@
 }
 
 body {
-  font-family: 'Arial', sans-serif;
+  font-family: 'Rajdhani', 'Arial', sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.6;
+  font-weight: 400;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.logo-text {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
 /* Container and Layout */
@@ -48,7 +67,7 @@ body {
   padding: 40px;
   border-radius: 8px;
   border: 1px solid var(--border-color);
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+  box-shadow: 0 0 20px var(--crimson-glow);
   min-width: 400px;
 }
 
@@ -83,8 +102,8 @@ input:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+  border-color: var(--accent-crimson);
+  box-shadow: 0 0 10px var(--crimson-glow);
 }
 
 /* Button Styles */
@@ -102,13 +121,18 @@ select:focus {
 }
 
 .btn-primary {
-  background: var(--accent-blue);
-  color: var(--bg-primary);
+  background: var(--accent-crimson);
+  color: var(--text-primary);
+  font-family: 'Orbitron', monospace;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .btn-primary:hover {
-  background: #0099cc;
-  box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+  background: var(--accent-crimson-light);
+  box-shadow: 0 0 15px var(--crimson-glow-strong);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
@@ -118,8 +142,9 @@ select:focus {
 }
 
 .btn-secondary:hover {
-  border-color: var(--accent-blue);
-  color: var(--accent-blue);
+  border-color: var(--accent-crimson);
+  color: var(--accent-crimson);
+  box-shadow: 0 0 10px var(--crimson-glow);
 }
 
 .btn-danger {
@@ -159,9 +184,9 @@ select:focus {
 }
 
 .message-info {
-  background: rgba(0, 212, 255, 0.2);
-  border: 1px solid var(--accent-blue);
-  color: var(--accent-blue);
+  background: rgba(139, 0, 0, 0.2);
+  border: 1px solid var(--accent-crimson);
+  color: var(--accent-crimson-light);
   animation: info-fade-in 0.5s ease-in-out;
 }
 
@@ -241,7 +266,7 @@ select:focus {
   height: 20px;
   border: 2px solid var(--border-color);
   border-radius: 50%;
-  border-top-color: var(--accent-blue);
+  border-top-color: var(--accent-crimson);
   animation: spin 1s ease-in-out infinite;
 }
 
@@ -256,23 +281,23 @@ select:focus {
   pointer-events: none;
 }
 
-/* Pulsing blue loading effect for buttons */
+/* Pulsing crimson loading effect for buttons */
 .btn.loading-state {
-  background: var(--accent-blue);
-  animation: pulse-blue 1.5s ease-in-out infinite;
+  background: var(--accent-crimson);
+  animation: pulse-crimson 1.5s ease-in-out infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-@keyframes pulse-blue {
+@keyframes pulse-crimson {
   0%, 100% { 
-    box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+    box-shadow: 0 0 10px var(--crimson-glow);
     opacity: 0.8;
   }
   50% { 
-    box-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+    box-shadow: 0 0 20px var(--crimson-glow-strong);
     opacity: 1;
   }
 }
@@ -313,8 +338,8 @@ select:focus {
 .status-online { background-color: var(--success-green); }
 .status-offline { background-color: var(--error-red); }
 .status-loading { 
-  background-color: var(--accent-blue);
-  animation: pulse-blue 1s ease-in-out infinite;
+  background-color: var(--accent-crimson);
+  animation: pulse-crimson 1s ease-in-out infinite;
 }
 
 /* Form validation states */
@@ -358,14 +383,54 @@ select:focus {
 
 .progress-fill {
   height: 100%;
-  background-color: var(--accent-blue);
+  background-color: var(--accent-crimson);
   transition: width 0.3s ease;
   animation: progress-glow 2s ease-in-out infinite;
 }
 
 @keyframes progress-glow {
-  0%, 100% { box-shadow: 0 0 5px rgba(0, 212, 255, 0.3); }
-  50% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.6); }
+  0%, 100% { box-shadow: 0 0 5px var(--crimson-glow); }
+  50% { box-shadow: 0 0 10px var(--crimson-glow-strong); }
+}
+
+/* SVG Icons */
+.icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.icon-large {
+  width: 32px;
+  height: 32px;
+}
+
+.icon-success {
+  fill: var(--success-green);
+}
+
+.icon-error {
+  fill: var(--error-red);
+}
+
+.icon-crimson {
+  fill: var(--accent-crimson);
+}
+
+.icon-warning {
+  fill: #ffc107;
+}
+
+/* SVG Animations */
+.icon-spin {
+  animation: spin 1s linear infinite;
+}
+
+.icon-pulse {
+  animation: pulse-crimson 2s ease-in-out infinite;
 }
 
 /* Utility Classes */

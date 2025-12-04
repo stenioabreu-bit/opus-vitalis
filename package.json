@@ -1,7 +1,7 @@
 {
   "name": "simple-login-auth",
   "version": "1.0.0",
-  "description": "Sistema de autenticação e relatórios com tema Ordem Paranormal",
+  "description": "Sistema de autenticação e relatórios Opus Vitalis",
   "main": "index.html",
   "scripts": {
     "test": "jest --run",

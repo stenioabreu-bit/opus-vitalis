@@ -73,7 +73,7 @@ class SessionGuard {
             if (this.authService) {
                 this.authService.currentUser = null;
             }
-            localStorage.removeItem('ordem_paranormal_session');
+            localStorage.removeItem('opus_vitalis_session');
         } catch (error) {
             console.error('Error clearing session:', error);
         }

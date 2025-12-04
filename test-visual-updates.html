@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste das Atualizações Visuais - Opus Vitalis</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style>
+        .showcase-section {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .showcase-title {
+            color: var(--accent-crimson);
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px var(--crimson-glow);
+        }
+        
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .color-sample {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 500;
+        }
+        
+        .icons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .icon-sample {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        
+        .icon-sample svg {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .buttons-showcase {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .messages-showcase {
+            display: grid;
+            gap: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="showcase-section text-center">
+            <h1 class="logo-text" style="color: var(--accent-crimson); font-size: 3em; text-shadow: 0 0 20px var(--crimson-glow);">
+                OPUS VITALIS
+            </h1>
+            <p style="color: var(--text-secondary); font-family: 'Rajdhani', sans-serif; font-size: 1.2em; font-weight: 500;">
+                Sistema de Gestão e Relatórios - Nova Identidade Visual
+            </p>
+        </div>
+
+        <!-- Typography Showcase -->
+        <div class="showcase-section">
+            <h2 class="showcase-title">
+                <svg class="icon icon-large"><use href="#icon-info"></use></svg>
+                Tipografia
+            </h2>
+            
+            <div style="margin: 20px 0;">
+                <h1 style="font-family: 'Orbitron', monospace; color: var(--accent-crimson);">Orbitron - Títulos e Logo</h1>
+                <h2 style="font-family: 'Rajdhani', sans-serif; color: var(--text-primary);">Rajdhani - Texto Principal</h2>
+                <p style="font-family: 'Rajdhani', sans-serif; color: var(--text-secondary);">
+                    Esta é a nova tipografia do sistema. Orbitron para elementos de destaque e Rajdhani para legibilidade.
+                </p>
+            </div>
+        </div>
+
+        <!-- Color Palette -->
+        <div class="showcase-section">
+            <h2 class="showcase-title">
+                <svg class="icon icon-large"><use href="#icon-skull"></use></svg>
+                Paleta de Cores
+            </h2>
+            
+            <div class="color-palette">
+                <div class="color-sample" style="background: var(--accent-crimson); color: white;">
+                    <strong>Crimson Principal</strong><br>
+                    #8B0000
+                </div>
+                <div class="color-sample" style="background: var(--accent-crimson-light); color: white;">
+                    <strong>Crimson Claro</strong><br>
+                    #B22222
+                </div>
+                <div class="color-sample" style="background: var(--accent-crimson-dark); color: white;">
+                    <strong>Crimson Escuro</strong><br>
+                    #660000
+                </div>
+                <div class="color-sample" style="background: var(--bg-primary); color: white; border: 1px solid var(--border-color);">
+                    <strong>Fundo Principal</strong><br>
+                    #000000
+                </div>
+                <div class="color-sample" style="background: var(--success-green); color: white;">
+                    <strong>Sucesso</strong><br>
+                    #4a7c59
+                </div>
+                <div class="color-sample" style="background: var(--error-red); color: white;">
+                    <strong>Erro</strong><br>
+                    #cc0000
+                </div>
+            </div>
+        </div>
+
+        <!-- Icons Showcase -->
+        <div class="showcase-section">
+            <h2 class="showcase-title">
+                <svg class="icon icon-large"><use href="#icon-shield"></use></svg>
+                Ícones SVG
+            </h2>
+            
+            <div class="icons-grid">
+                <div class="icon-sample">
+                    <svg class="icon icon-success"><use href="#icon-success"></use></svg>
+                    <div>Sucesso</div>
+                </div>
+                <div class="icon-sample">
+                    <svg class="icon icon-error"><use href="#icon-error"></use></svg>
+                    <div>Erro</div>
+                </div>
+                <div class="icon-sample">
+                    <svg class="icon icon-warning"><use href="#icon-warning"></use></svg>
+                    <div>Aviso</div>
+                </div>
+                <div class="icon-sample">
+                    <svg class="icon icon-crimson"><use href="#icon-info"></use></svg>
+                    <div>Info</div>
+                </div>
+                <div class="icon-sample">
+                    <svg class="icon icon-spin"><use href="#icon-loading"></use></svg>
+                    <div>Carregando</div>
+                </div>
+                <div class="icon-sample">
+                    <svg class="icon"><use href="#icon-user"></use></svg>
+                    <div>Usuário</div>
+                </div>
+                <div class="icon-sample">
+                    <svg class="icon"><use href="#icon-report"></use></svg>
+                    <div>Relatório</div>
+                </div>
+                <div class="icon-sample">
+                    <svg class="icon"><use href="#icon-team"></use></svg>
+                    <div>Equipe</div>
+                </div>
+                <div class="icon-sample">
+                    <svg class="icon"><use href="#icon-share"></use></svg>
+                    <div>Compartilhar</div>
+                </div>
+                <div class="icon-sample">
+                    <svg class="icon"><use href="#icon-dashboard"></use></svg>
+                    <div>Dashboard</div>
+                </div>
+                <div class="icon-sample">
+                    <svg class="icon"><use href="#icon-create"></use></svg>
+                    <div>Criar</div>
+                </div>
+                <div class="icon-sample">
+                    <svg class="icon icon-crimson"><use href="#icon-skull"></use></svg>
+                    <div>Paranormal</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons Showcase -->
+        <div class="showcase-section">
+            <h2 class="showcase-title">
+                <svg class="icon icon-large"><use href="#icon-create"></use></svg>
+                Botões
+            </h2>
+            
+            <div class="buttons-showcase">
+                <button class="btn btn-primary">
+                    <svg class="icon"><use href="#icon-success"></use></svg>
+                    Botão Principal
+                </button>
+                <button class="btn btn-secondary">
+                    <svg class="icon"><use href="#icon-info"></use></svg>
+                    Botão Secundário
+                </button>
+                <button class="btn btn-danger">
+                    <svg class="icon"><use href="#icon-logout"></use></svg>
+                    Botão de Perigo
+                </button>
+                <button class="btn btn-primary" id="loading-demo">
+                    <svg class="icon"><use href="#icon-loading"></use></svg>
+                    Testar Loading
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages Showcase -->
+        <div class="showcase-section">
+            <h2 class="showcase-title">
+                <svg class="icon icon-large"><use href="#icon-info"></use></svg>
+                Mensagens
+            </h2>
+            
+            <div class="messages-showcase">
+                <div class="message message-success">
+                    <svg class="icon icon-success"><use href="#icon-success"></use></svg>
+                    <span>Operação realizada com sucesso!</span>
+                </div>
+                
+                <div class="message message-error">
+                    <svg class="icon icon-error"><use href="#icon-error"></use></svg>
+                    <span>Erro ao processar a solicitação.</span>
+                </div>
+                
+                <div class="message message-warning">
+                    <svg class="icon icon-warning"><use href="#icon-warning"></use></svg>
+                    <span>Atenção: Verifique os dados antes de continuar.</span>
+                </div>
+                
+                <div class="message message-info">
+                    <svg class="icon icon-crimson"><use href="#icon-info"></use></svg>
+                    <span>Informação importante sobre o sistema.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Demo -->
+        <div class="showcase-section">
+            <h2 class="showcase-title">
+                <svg class="icon icon-large"><use href="#icon-dashboard"></use></svg>
+                Demonstração Interativa
+            </h2>
+            
+            <div id="demo-container"></div>
+            
+            <div class="buttons-showcase">
+                <button id="show-success" class="btn btn-primary">
+                    <svg class="icon"><use href="#icon-success"></use></svg>
+                    Mostrar Sucesso
+                </button>
+                <button id="show-error" class="btn btn-secondary">
+                    <svg class="icon"><use href="#icon-error"></use></svg>
+                    Mostrar Erro
+                </button>
+                <button id="show-warning" class="btn btn-secondary">
+                    <svg class="icon"><use href="#icon-warning"></use></svg>
+                    Mostrar Aviso
+                </button>
+                <button id="show-info" class="btn btn-secondary">
+                    <svg class="icon"><use href="#icon-info"></use></svg>
+                    Mostrar Info
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/icons.js"></script>
+    <script src="scripts/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Demo buttons
+            document.getElementById('show-success').addEventListener('click', function() {
+                Utils.showMessage('Teste de mensagem de sucesso com novo visual!', 'success', 'demo-container');
+            });
+            
+            document.getElementById('show-error').addEventListener('click', function() {
+                Utils.showMessage('Teste de mensagem de erro com novo visual!', 'error', 'demo-container');
+            });
+            
+            document.getElementById('show-warning').addEventListener('click', function() {
+                Utils.showMessage('Teste de mensagem de aviso com novo visual!', 'warning', 'demo-container');
+            });
+            
+            document.getElementById('show-info').addEventListener('click', function() {
+                Utils.showMessage('Teste de mensagem informativa com novo visual!', 'info', 'demo-container');
+            });
+            
+            // Loading demo
+            document.getElementById('loading-demo').addEventListener('click', function() {
+                Utils.showLoading('loading-demo', 'Carregando...');
+                
+                setTimeout(() => {
+                    Utils.hideLoading('loading-demo', 'Concluído!');
+                    
+                    setTimeout(() => {
+                        const btn = document.getElementById('loading-demo');
+                        btn.innerHTML = '<svg class="icon"><use href="#icon-loading"></use></svg>Testar Loading';
+                    }, 2000);
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>

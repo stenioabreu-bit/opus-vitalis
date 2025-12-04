@@ -54,8 +54,27 @@ class Utils {
             messageDiv.setAttribute('role', type === 'error' ? 'alert' : 'status');
             messageDiv.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
             
-            // Sanitize message content
-            messageDiv.textContent = message;
+            // Add icon based on message type
+            let iconHTML = '';
+            if (window.iconManager) {
+                switch (type) {
+                    case 'success':
+                        iconHTML = window.iconManager.getIconHTML('success', 'icon icon-success');
+                        break;
+                    case 'error':
+                        iconHTML = window.iconManager.getIconHTML('error', 'icon icon-error');
+                        break;
+                    case 'warning':
+                        iconHTML = window.iconManager.getIconHTML('warning', 'icon icon-warning');
+                        break;
+                    case 'info':
+                        iconHTML = window.iconManager.getIconHTML('info', 'icon icon-crimson');
+                        break;
+                }
+            }
+            
+            // Set message content with icon
+            messageDiv.innerHTML = `${iconHTML}<span>${this.sanitizeHtml(message)}</span>`;
 
             // Add close button for persistent messages
             if (options.persistent || type === 'error') {
@@ -118,7 +137,13 @@ class Utils {
                 element.dataset.originalDisabled = element.disabled;
             }
 
-            element.innerHTML = `<span class="loading"></span> ${loadingText}`;
+            // Use SVG loading icon if available
+            let loadingIcon = '<span class="loading"></span>';
+            if (window.iconManager) {
+                loadingIcon = window.iconManager.getIconHTML('loading', 'icon icon-spin');
+            }
+
+            element.innerHTML = `${loadingIcon} ${loadingText}`;
             element.disabled = true;
             element.classList.add('loading-state');
             

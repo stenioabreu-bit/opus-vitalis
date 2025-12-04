@@ -4,7 +4,7 @@
 class AuthService {
     constructor() {
         this.currentUser = null;
-        this.sessionKey = 'ordem_paranormal_session';
+        this.sessionKey = 'opus_vitalis_session';
         this.dataLoader = new DataLoader();
     }
 
@@ -132,8 +132,8 @@ class AuthService {
             localStorage.removeItem(this.sessionKey);
             
             // Also clear any other related data
-            localStorage.removeItem('ordem_paranormal_reports');
-            localStorage.removeItem('ordem_paranormal_notifications');
+            localStorage.removeItem('opus_vitalis_reports');
+            localStorage.removeItem('opus_vitalis_notifications');
             
             console.log('Session data cleared successfully');
             
