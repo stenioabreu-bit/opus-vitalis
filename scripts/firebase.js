@@ -16,6 +16,13 @@ class FirebaseService {
     async init() {
         try {
             console.log('🔥 Initializing Firebase...');
+            console.log('🌐 Current URL:', window.location.href);
+            console.log('🔧 Firebase available:', typeof firebase !== 'undefined');
+            
+            // Check if Firebase is loaded
+            if (typeof firebase === 'undefined') {
+                throw new Error('Firebase SDK not loaded');
+            }
             
             // Firebase configuration
             const firebaseConfig = {
@@ -28,17 +35,30 @@ class FirebaseService {
                 measurementId: "G-0F33N6PTWV"
             };
 
+            console.log('🔧 Initializing Firebase app...');
             // Initialize Firebase
             this.app = firebase.initializeApp(firebaseConfig);
-            this.db = firebase.firestore();
-            this.auth = firebase.auth();
+            console.log('✅ Firebase app initialized');
             
-            // Enable offline persistence
+            console.log('🔧 Initializing Firestore...');
+            this.db = firebase.firestore();
+            console.log('✅ Firestore initialized');
+            
+            console.log('🔧 Initializing Auth...');
+            this.auth = firebase.auth();
+            console.log('✅ Auth initialized');
+            
+            // Test connection
+            console.log('🔧 Testing Firestore connection...');
+            await this.db.collection('test').limit(1).get();
+            console.log('✅ Firestore connection test successful');
+            
+            // Enable offline persistence (optional)
             try {
                 await this.db.enablePersistence();
                 console.log('✅ Firebase offline persistence enabled');
             } catch (error) {
-                console.warn('⚠️ Firebase persistence failed:', error);
+                console.warn('⚠️ Firebase persistence failed (this is OK):', error.message);
             }
             
             this.initialized = true;
@@ -47,8 +67,26 @@ class FirebaseService {
             return true;
         } catch (error) {
             console.error('❌ Firebase initialization failed:', error);
+            console.error('❌ Error details:', error.message);
+            console.error('❌ Error stack:', error.stack);
+            this.initialized = false;
             return false;
         }
+    }
+
+    // Check if Firebase is initialized
+    isInitialized() {
+        return this.initialized;
+    }
+
+    // Get database instance
+    getDB() {
+        return this.db;
+    }
+
+    // Get auth instance
+    getAuth() {
+        return this.auth;
     }
 
     // Check if Firebase is initialized

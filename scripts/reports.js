@@ -11,9 +11,11 @@ class ReportsService {
             this.firebaseReports = null;
             this.firebaseInitialized = false;
             
-            // Initialize Firebase asynchronously
+            // Initialize Firebase asynchronously with better error handling
             this.initFirebase().catch(error => {
                 console.warn('Firebase initialization failed, using localStorage:', error);
+                this.useFirebase = false;
+                this.firebaseInitialized = false;
             });
             
             console.log('✅ ReportsService constructor completed');
@@ -31,9 +33,22 @@ class ReportsService {
             // Wait a bit for Firebase scripts to load
             await new Promise(resolve => setTimeout(resolve, 500));
             
-            if (window.firebaseReportsService) {
-                console.log('📋 Firebase Reports Service found, initializing...');
+            // Initialize Firebase service if not already done
+            if (!window.firebaseService) {
+                console.log('🔥 Creating Firebase service...');
+                window.firebaseService = new FirebaseService();
+                await window.firebaseService.init();
+            }
+            
+            // Initialize Firebase Reports service if not already done
+            if (!window.firebaseReportsService) {
+                console.log('📋 Creating Firebase Reports Service...');
+                window.firebaseReportsService = new FirebaseReportsService();
                 await window.firebaseReportsService.init();
+            }
+            
+            if (window.firebaseReportsService) {
+                console.log('📋 Firebase Reports Service found, using it...');
                 this.firebaseReports = window.firebaseReportsService;
                 this.useFirebase = true;
                 this.firebaseInitialized = true;
@@ -163,14 +178,14 @@ class ReportsService {
                 console.warn('⚠️ Error checking user role:', error);
             }
 
-            // Try Firebase first, fallback to localStorage
+            // Try Firebase first (primary storage for multi-user)
             if (this.useFirebase && this.firebaseReports && this.firebaseInitialized) {
-                console.log('🔥 Using Firebase to load reports');
+                console.log('🔥 Using Firebase to load reports (primary storage)');
                 const reports = await this.firebaseReports.loadReports(userId, isLeader);
                 console.log('📊 Firebase returned', reports.length, 'reports');
                 return reports;
             } else {
-                console.log('💾 Using localStorage to load reports (Firebase not ready or not available)');
+                console.log('💾 Firebase not available, using localStorage fallback');
                 const reports = await this.loadReportsLocal(userId, isLeader);
                 console.log('📊 localStorage returned', reports.length, 'reports');
                 return reports;
@@ -237,14 +252,38 @@ class ReportsService {
                 authorName: currentUser.name || currentUser.username
             };
 
-            // Try Firebase first, fallback to localStorage
-            if (this.useFirebase && this.firebaseReports) {
-                console.log('🔥 Using Firebase to create report');
-                return await this.firebaseReports.createReport(reportToCreate, currentUser.id);
+            // Wait for Firebase to initialize properly
+            await this.waitForFirebase(5000);
+            
+            // Try Firebase first (primary storage for multi-user)
+            if (this.useFirebase && this.firebaseReports && this.firebaseInitialized) {
+                console.log('🔥 Using Firebase to create report (primary storage)');
+                const firebaseResult = await this.firebaseReports.createReport(reportToCreate, currentUser.id);
+                
+                if (firebaseResult.success) {
+                    console.log('✅ Report created in Firebase');
+                    
+                    // Also save to localStorage as backup
+                    try {
+                        const localReports = this.getLocalReports();
+                        localReports[firebaseResult.reportId] = firebaseResult.report;
+                        this.saveLocalReports(localReports);
+                        console.log('💾 Report also saved to localStorage as backup');
+                    } catch (localError) {
+                        console.warn('⚠️ Failed to save to localStorage backup:', localError);
+                    }
+                    
+                    return firebaseResult;
+                } else {
+                    console.warn('⚠️ Firebase create failed, falling back to localStorage');
+                }
             } else {
-                console.log('💾 Using localStorage to create report');
-                return await this.createReportLocal(reportToCreate, currentUser);
+                console.warn('⚠️ Firebase not available, using localStorage fallback');
             }
+            
+            // Fallback to localStorage only if Firebase fails
+            console.log('💾 Using localStorage fallback');
+            return await this.createReportLocal(reportToCreate, currentUser);
 
         } catch (error) {
             console.error('❌ Error creating report:', error);
@@ -302,7 +341,7 @@ class ReportsService {
             // Wait for Firebase to initialize
             await this.waitForFirebase(3000);
             
-            // Try Firebase first
+            // Try Firebase first (primary storage for multi-user)
             if (this.useFirebase && this.firebaseReports && this.firebaseInitialized) {
                 console.log('🔥 Using Firebase to get report');
                 const report = await this.firebaseReports.getReport(reportId);

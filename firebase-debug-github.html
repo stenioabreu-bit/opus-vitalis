@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Debug - GitHub Pages</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style>
+        .debug-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .debug-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .debug-log {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .status.success { background: #4a7c59; color: white; }
+        .status.error { background: #cc0000; color: white; }
+        .status.warning { background: #ffc107; color: black; }
+        .status.info { background: #0066cc; color: white; }
+        
+        .test-button {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .test-button:hover {
+            background: #0099cc;
+        }
+        
+        .test-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔥 Firebase Debug - GitHub Pages</h1>
+        
+        <div class="debug-section">
+            <h2>Environment Info</h2>
+            <div id="env-info"></div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Firebase Status</h2>
+            <div id="firebase-status"></div>
+            <button id="test-firebase" class="test-button">Test Firebase Connection</button>
+            <button id="test-create" class="test-button">Test Create Report</button>
+            <button id="test-load" class="test-button">Test Load Reports</button>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Debug Log</h2>
+            <div id="debug-log" class="debug-log"></div>
+            <button id="clear-log" class="test-button">Clear Log</button>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script src="scripts/firebase.js"></script>
+    <script src="scripts/reports.js"></script>
+    
+    <script>
+        let debugLog = '';
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            debugLog += logEntry + '\n';
+            
+            const logElement = document.getElementById('debug-log');
+            logElement.textContent = debugLog;
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            console.log(logEntry);
+        }
+        
+        function updateStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        async function initDebug() {
+            log('🚀 Starting Firebase Debug for GitHub Pages', 'info');
+            
+            // Environment info
+            const envInfo = `
+                URL: ${window.location.href}
+                User Agent: ${navigator.userAgent}
+                Protocol: ${window.location.protocol}
+                Host: ${window.location.host}
+                Firebase Available: ${typeof firebase !== 'undefined'}
+            `;
+            document.getElementById('env-info').innerHTML = `<pre>${envInfo}</pre>`;
+            
+            // Test Firebase availability
+            if (typeof firebase === 'undefined') {
+                updateStatus('firebase-status', '❌ Firebase SDK not loaded', 'error');
+                log('❌ Firebase SDK not available', 'error');
+                return;
+            }
+            
+            updateStatus('firebase-status', '✅ Firebase SDK loaded', 'success');
+            log('✅ Firebase SDK available', 'success');
+            
+            // Initialize Firebase service
+            try {
+                log('🔥 Initializing Firebase service...', 'info');
+                window.firebaseService = new FirebaseService();
+                const initResult = await window.firebaseService.init();
+                
+                if (initResult) {
+                    updateStatus('firebase-status', '✅ Firebase initialized successfully', 'success');
+                    log('✅ Firebase service initialized', 'success');
+                    
+                    // Initialize reports service
+                    window.firebaseReportsService = new FirebaseReportsService();
+                    await window.firebaseReportsService.init();
+                    log('✅ Firebase Reports service initialized', 'success');
+                    
+                } else {
+                    updateStatus('firebase-status', '❌ Firebase initialization failed', 'error');
+                    log('❌ Firebase service initialization failed', 'error');
+                }
+            } catch (error) {
+                updateStatus('firebase-status', `❌ Error: ${error.message}`, 'error');
+                log(`❌ Firebase initialization error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testFirebaseConnection() {
+            log('🔍 Testing Firebase connection...', 'info');
+            
+            try {
+                if (!window.firebaseService || !window.firebaseService.isInitialized()) {
+                    throw new Error('Firebase service not initialized');
+                }
+                
+                const db = window.firebaseService.getDB();
+                const testQuery = await db.collection('relatorios').limit(1).get();
+                
+                log(`✅ Connection test successful - found ${testQuery.size} documents`, 'success');
+                updateStatus('firebase-status', '✅ Connection test passed', 'success');
+                
+            } catch (error) {
+                log(`❌ Connection test failed: ${error.message}`, 'error');
+                updateStatus('firebase-status', `❌ Connection failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testCreateReport() {
+            log('📝 Testing report creation...', 'info');
+            
+            try {
+                if (!window.firebaseReportsService) {
+                    throw new Error('Firebase Reports service not available');
+                }
+                
+                const testReport = {
+                    title: 'Test Report - GitHub Pages',
+                    description: 'This is a test report created from GitHub Pages',
+                    missionDate: new Date().toISOString().split('T')[0],
+                    status: 'completed',
+                    authorName: 'Debug User'
+                };
+                
+                const result = await window.firebaseReportsService.createReport(testReport, 'debug_user');
+                
+                if (result.success) {
+                    log(`✅ Report created successfully: ${result.reportId}`, 'success');
+                } else {
+                    log(`❌ Report creation failed: ${result.message}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Report creation error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testLoadReports() {
+            log('📊 Testing report loading...', 'info');
+            
+            try {
+                if (!window.firebaseReportsService) {
+                    throw new Error('Firebase Reports service not available');
+                }
+                
+                const reports = await window.firebaseReportsService.loadReports('debug_user', false);
+                log(`✅ Loaded ${reports.length} reports`, 'success');
+                
+                reports.forEach((report, index) => {
+                    log(`  ${index + 1}. ${report.title} (${report.status})`, 'info');
+                });
+                
+            } catch (error) {
+                log(`❌ Report loading error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('test-firebase').addEventListener('click', testFirebaseConnection);
+        document.getElementById('test-create').addEventListener('click', testCreateReport);
+        document.getElementById('test-load').addEventListener('click', testLoadReports);
+        document.getElementById('clear-log').addEventListener('click', () => {
+            debugLog = '';
+            document.getElementById('debug-log').textContent = '';
+        });
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initDebug);
+    </script>
+</body>
+</html>
