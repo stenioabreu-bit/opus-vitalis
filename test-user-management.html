@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Gerenciamento de Usuários</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style>
+        .test-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .log {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .success { color: var(--success-green); }
+        .error { color: var(--error-red); }
+        .info { color: var(--text-primary); }
+        .warning { color: var(--warning-orange); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste - Sistema de Gerenciamento de Usuários</h1>
+        
+        <div class="test-section">
+            <h2>🔧 Testes do Sistema</h2>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="testUserManager()">
+                    👤 Testar UserManager
+                </button>
+                <button class="btn btn-secondary" onclick="testMigration()">
+                    🔄 Testar Migração
+                </button>
+                <button class="btn btn-secondary" onclick="testAuth()">
+                    🔐 Testar Autenticação
+                </button>
+                <button class="btn btn-danger" onclick="clearLog()">
+                    🗑️ Limpar Log
+                </button>
+            </div>
+            <div id="test-log" class="log"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script src="scripts/firebase.js"></script>
+    <script src="scripts/user-manager.js"></script>
+    
+    <script>
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('test-log');
+            const timestamp = new Date().toLocaleTimeString();
+            logEl.textContent += `[${timestamp}] ${message}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            document.getElementById('test-log').textContent = '';
+        }
+
+        async function testUserManager() {
+            clearLog();
+            log('🧪 Testando UserManager...', 'info');
+            
+            try {
+                // 1. Initialize UserManager
+                log('1️⃣ Inicializando UserManager...', 'info');
+                const userManager = new UserManager();
+                await userManager.init();
+                log('✅ UserManager inicializado', 'success');
+                
+                // 2. Get all users
+                log('2️⃣ Carregando usuários...', 'info');
+                const users = await userManager.getAllUsers();
+                log(`✅ ${users.length} usuários encontrados`, 'success');
+                
+                users.forEach((user, index) => {
+                    log(`   ${index + 1}. ${user.name} (${user.username}) - ${user.role}`, 'info');
+                });
+                
+                // 3. Test user creation
+                log('3️⃣ Testando criação de usuário...', 'info');
+                const testUser = {
+                    name: 'Usuário Teste',
+                    username: 'teste_' + Date.now(),
+                    password: 'senha123',
+                    role: 'agent',
+                    team: 'teste_team'
+                };
+                
+                const createResult = await userManager.createUser(testUser);
+                if (createResult.success) {
+                    log('✅ Usuário de teste criado: ' + createResult.user.id, 'success');
+                    
+                    // 4. Test user update
+                    log('4️⃣ Testando atualização de usuário...', 'info');
+                    const updateResult = await userManager.updateUser(createResult.user.id, {
+                        name: 'Usuário Teste Atualizado',
+                        role: 'leader'
+                    });
+                    
+                    if (updateResult.success) {
+                        log('✅ Usuário atualizado com sucesso', 'success');
+                        
+                        // 5. Test user deletion
+                        log('5️⃣ Testando exclusão de usuário...', 'info');
+                        const deleteResult = await userManager.deleteUser(createResult.user.id);
+                        
+                        if (deleteResult.success) {
+                            log('✅ Usuário excluído com sucesso', 'success');
+                        } else {
+                            log('❌ Erro ao excluir usuário: ' + deleteResult.message, 'error');
+                        }
+                    } else {
+                        log('❌ Erro ao atualizar usuário: ' + updateResult.message, 'error');
+                    }
+                } else {
+                    log('❌ Erro ao criar usuário: ' + createResult.message, 'error');
+                }
+                
+                log('🎯 Teste do UserManager concluído!', 'success');
+                
+            } catch (error) {
+                log('❌ Erro durante teste: ' + error.message, 'error');
+                console.error('Test error:', error);
+            }
+        }
+
+        async function testMigration() {
+            log('🔄 Testando migração de usuários...', 'info');
+            
+            try {
+                const userManager = new UserManager();
+                await userManager.init();
+                
+                const users = await userManager.getAllUsers();
+                log(`📊 Total de usuários após migração: ${users.length}`, 'info');
+                
+                if (users.length > 0) {
+                    log('✅ Migração bem-sucedida!', 'success');
+                    users.forEach(user => {
+                        const migrated = user.migrated ? ' (migrado)' : '';
+                        log(`   👤 ${user.name} - ${user.username}${migrated}`, 'info');
+                    });
+                } else {
+                    log('⚠️ Nenhum usuário encontrado após migração', 'warning');
+                }
+                
+            } catch (error) {
+                log('❌ Erro na migração: ' + error.message, 'error');
+            }
+        }
+
+        async function testAuth() {
+            log('🔐 Testando sistema de autenticação...', 'info');
+            
+            try {
+                const authService = new AuthService();
+                
+                // Test with existing user
+                log('1️⃣ Testando login com usuário existente...', 'info');
+                const loginResult = await authService.login('bella_evans', 'sãocristovão2016');
+                
+                if (loginResult.success) {
+                    log('✅ Login realizado com sucesso!', 'success');
+                    
+                    const currentUser = authService.getCurrentUser();
+                    log(`👤 Usuário logado: ${currentUser.name} (${currentUser.role})`, 'info');
+                    
+                    // Test logout
+                    log('2️⃣ Testando logout...', 'info');
+                    authService.logout();
+                    
+                    const userAfterLogout = authService.getCurrentUser();
+                    if (!userAfterLogout) {
+                        log('✅ Logout realizado com sucesso!', 'success');
+                    } else {
+                        log('❌ Erro no logout', 'error');
+                    }
+                } else {
+                    log('❌ Erro no login: ' + loginResult.message, 'error');
+                }
+                
+                log('🎯 Teste de autenticação concluído!', 'success');
+                
+            } catch (error) {
+                log('❌ Erro durante teste de auth: ' + error.message, 'error');
+                console.error('Auth test error:', error);
+            }
+        }
+
+        // Auto-run tests on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Página de teste carregada', 'info');
+            log('📋 Sistema de gerenciamento de usuários implementado', 'info');
+            log('🔧 Clique nos botões para executar os testes', 'info');
+        });
+    </script>
+</body>
+</html>

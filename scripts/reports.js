@@ -9,6 +9,7 @@ class ReportsService {
             this.localStorageKey = 'opus_vitalis_reports';
             this.useFirebase = false;
             this.firebaseReports = null;
+            this.firebaseInitialized = false;
             
             // Initialize Firebase asynchronously
             this.initFirebase().catch(error => {
@@ -25,16 +26,37 @@ class ReportsService {
     // Initialize Firebase
     async initFirebase() {
         try {
+            console.log('🔥 Initializing Firebase in ReportsService...');
+            
+            // Wait a bit for Firebase scripts to load
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
             if (window.firebaseReportsService) {
+                console.log('📋 Firebase Reports Service found, initializing...');
                 await window.firebaseReportsService.init();
                 this.firebaseReports = window.firebaseReportsService;
                 this.useFirebase = true;
-                console.log('✅ Firebase Reports Service ready');
+                this.firebaseInitialized = true;
+                console.log('✅ Firebase Reports Service ready and enabled');
+            } else {
+                console.warn('⚠️ window.firebaseReportsService not found');
+                this.useFirebase = false;
+                this.firebaseInitialized = false;
             }
         } catch (error) {
             console.warn('⚠️ Firebase not available, using localStorage fallback:', error);
             this.useFirebase = false;
+            this.firebaseInitialized = false;
         }
+    }
+
+    // Wait for Firebase to be ready
+    async waitForFirebase(maxWait = 5000) {
+        const startTime = Date.now();
+        while (!this.firebaseInitialized && (Date.now() - startTime) < maxWait) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        return this.firebaseInitialized;
     }
 
     // Initialize sync service
@@ -122,7 +144,13 @@ class ReportsService {
     // Load reports for a specific user
     async loadReports(userId) {
         try {
-            console.log('📋 Loading reports for user:', userId);
+            console.log('📋 ReportsService.loadReports called for user:', userId);
+            
+            // Wait for Firebase to initialize (up to 3 seconds)
+            console.log('⏳ Waiting for Firebase to initialize...');
+            await this.waitForFirebase(3000);
+            
+            console.log('🔥 Firebase status - useFirebase:', this.useFirebase, 'firebaseReports:', !!this.firebaseReports, 'initialized:', this.firebaseInitialized);
             
             // Check if user is a leader
             let isLeader = false;
@@ -130,18 +158,22 @@ class ReportsService {
                 const users = await this.dataLoader.loadUsers();
                 const currentUser = Object.values(users).find(user => user.id === userId);
                 isLeader = currentUser && currentUser.role === 'leader';
-                console.log('👤 User role:', currentUser ? currentUser.role : 'not found');
+                console.log('👤 User role check - user:', currentUser?.name, 'role:', currentUser?.role, 'isLeader:', isLeader);
             } catch (error) {
                 console.warn('⚠️ Error checking user role:', error);
             }
 
             // Try Firebase first, fallback to localStorage
-            if (this.useFirebase && this.firebaseReports) {
-                console.log('🔥 Loading reports from Firebase');
-                return await this.firebaseReports.loadReports(userId, isLeader);
+            if (this.useFirebase && this.firebaseReports && this.firebaseInitialized) {
+                console.log('🔥 Using Firebase to load reports');
+                const reports = await this.firebaseReports.loadReports(userId, isLeader);
+                console.log('📊 Firebase returned', reports.length, 'reports');
+                return reports;
             } else {
-                console.log('💾 Loading reports from localStorage');
-                return await this.loadReportsLocal(userId, isLeader);
+                console.log('💾 Using localStorage to load reports (Firebase not ready or not available)');
+                const reports = await this.loadReportsLocal(userId, isLeader);
+                console.log('📊 localStorage returned', reports.length, 'reports');
+                return reports;
             }
 
         } catch (error) {
@@ -265,10 +297,37 @@ class ReportsService {
     // Get a single report by ID
     async getReport(reportId) {
         try {
-            const allReports = await this.getAllReports();
-            return allReports[reportId] || null;
+            console.log('🔍 Getting report by ID:', reportId);
+            
+            // Wait for Firebase to initialize
+            await this.waitForFirebase(3000);
+            
+            // Try Firebase first
+            if (this.useFirebase && this.firebaseReports && this.firebaseInitialized) {
+                console.log('🔥 Using Firebase to get report');
+                const report = await this.firebaseReports.getReport(reportId);
+                if (report) {
+                    console.log('✅ Report found in Firebase');
+                    return report;
+                }
+                console.log('⚠️ Report not found in Firebase, trying localStorage');
+            }
+            
+            // Fallback to localStorage
+            console.log('💾 Trying localStorage for report');
+            const allReports = this.getLocalReports();
+            const report = allReports[reportId];
+            
+            if (report) {
+                console.log('✅ Report found in localStorage');
+                return report;
+            }
+            
+            console.log('❌ Report not found anywhere');
+            return null;
+            
         } catch (error) {
-            console.error('Error getting report:', error);
+            console.error('❌ Error getting report:', error);
             return null;
         }
     }

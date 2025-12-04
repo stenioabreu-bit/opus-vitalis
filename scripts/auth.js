@@ -32,17 +32,42 @@ class AuthService {
                 };
             }
 
-            const isValid = await this.dataLoader.validateUserCredentials(username.trim(), password);
-            
-            if (this.dataLoader.isUsingFallbackData()) {
-                console.warn('Sistema operando com dados de fallback');
+            // Use UserManager for validation (new system)
+            try {
+                if (!this.userManager) {
+                    this.userManager = new UserManager();
+                    await this.userManager.init();
+                }
+
+                const validation = await this.userManager.validateCredentials(username.trim(), password);
+                
+                if (validation.success) {
+                    return {
+                        success: true,
+                        message: 'Credenciais válidas',
+                        user: validation.user,
+                        usingFallback: false
+                    };
+                } else {
+                    return validation;
+                }
+            } catch (userManagerError) {
+                console.warn('UserManager failed, trying legacy system:', userManagerError);
+                
+                // Fallback to legacy system
+                const isValid = await this.dataLoader.validateUserCredentials(username.trim(), password);
+                
+                if (this.dataLoader.isUsingFallbackData()) {
+                    console.warn('Sistema operando com dados de fallback');
+                }
+                
+                return {
+                    success: isValid,
+                    message: isValid ? 'Credenciais válidas (sistema legado)' : 'Usuário ou senha inválidos',
+                    usingFallback: this.dataLoader.isUsingFallbackData()
+                };
             }
             
-            return {
-                success: isValid,
-                message: isValid ? 'Credenciais válidas' : 'Usuário ou senha inválidos',
-                usingFallback: this.dataLoader.isUsingFallbackData()
-            };
         } catch (error) {
             console.error('Error validating credentials:', error);
             return {
@@ -61,6 +86,22 @@ class AuthService {
                 throw new Error('Nome de usuário inválido');
             }
 
+            // Try UserManager first (new system)
+            try {
+                if (!this.userManager) {
+                    this.userManager = new UserManager();
+                    await this.userManager.init();
+                }
+
+                const user = await this.userManager.getUserByUsername(username.trim());
+                if (user) {
+                    return user;
+                }
+            } catch (userManagerError) {
+                console.warn('UserManager failed, trying legacy system:', userManagerError);
+            }
+
+            // Fallback to legacy system
             const userData = await this.dataLoader.getUserByUsername(username.trim());
             
             if (!userData) {
@@ -72,6 +113,11 @@ class AuthService {
             console.error('Error loading user data:', error);
             throw new Error(`Erro ao carregar dados do usuário: ${error.message}`);
         }
+    }
+
+    // Login function (alias for handleLogin)
+    async login(username, password) {
+        return await this.handleLogin(username, password);
     }
 
     // Handle login process
@@ -118,6 +164,11 @@ class AuthService {
                     'Erro interno do sistema. Tente novamente.'
             };
         }
+    }
+
+    // Logout function (alias for handleLogout)
+    async logout() {
+        return this.handleLogout();
     }
 
     // Handle logout process

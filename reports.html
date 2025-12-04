@@ -577,6 +577,7 @@
                 const statusText = this.getStatusText(report.status);
                 const formattedDate = Utils.formatDate(report.missionDate);
                 const createdDate = Utils.formatDate(report.createdAt);
+                const currentUserId = this.currentUser.id;
 
                 return `
                     <div class="report-card" data-report-id="${report.id}">
@@ -599,7 +600,7 @@
                                 </svg>
                                 <span>${formattedDate}</span>
                             </div>
-                            ${report.authorId !== currentUser.id ? `
+                            ${report.authorId !== currentUserId ? `
                             <div class="report-author" style="color: var(--accent-crimson); font-weight: 500;">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>

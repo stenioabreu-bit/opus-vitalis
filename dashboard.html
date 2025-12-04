@@ -115,6 +115,15 @@
                     </svg>
                     Relatórios Compartilhados
                 </a>
+                <a href="manage-users.html" class="btn btn-secondary" id="manage-users-btn" style="display: none;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        <path d="M8 3.13a4 4 0 0 0 0 7.75"/>
+                    </svg>
+                    Gerenciar Usuários
+                </a>
                 <button id="logout-btn" class="btn btn-danger">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -138,6 +147,11 @@
             document.addEventListener('DOMContentLoaded', function() {
                 // Mostrar nome do usuário
                 document.getElementById('user-name').textContent = currentUser.name || currentUser.username;
+                
+                // Show manage users button for leaders
+                if (currentUser.role === 'leader') {
+                    document.getElementById('manage-users-btn').style.display = 'inline-flex';
+                }
                 
                 // Configurar botão de logout
                 document.getElementById('logout-btn').addEventListener('click', function(e) {

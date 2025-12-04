@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Firebase</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style>
+        .debug-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .log {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .success { color: var(--success-green); }
+        .error { color: var(--error-red); }
+        .info { color: var(--text-primary); }
+        .warning { color: var(--warning-orange); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Debug Firebase - Carregamento de Relatórios</h1>
+        
+        <div class="debug-section">
+            <h2>🧪 Testes de Debug</h2>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="debugFullFlow()">
+                    🔍 Debug Completo
+                </button>
+                <button class="btn btn-secondary" onclick="testFirebaseConnection()">
+                    🔥 Testar Firebase
+                </button>
+                <button class="btn btn-secondary" onclick="testReportsService()">
+                    📋 Testar ReportsService
+                </button>
+                <button class="btn btn-danger" onclick="clearLog()">
+                    🗑️ Limpar Log
+                </button>
+            </div>
+            <div id="debug-log" class="log"></div>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script src="scripts/firebase.js"></script>
+    <script src="scripts/reports.js"></script>
+    
+    <script>
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('debug-log');
+            const timestamp = new Date().toLocaleTimeString();
+            logEl.textContent += `[${timestamp}] ${message}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            document.getElementById('debug-log').textContent = '';
+        }
+
+        async function debugFullFlow() {
+            clearLog();
+            log('🔧 Iniciando debug completo...', 'info');
+            
+            try {
+                // 1. Test Firebase Service
+                log('1️⃣ Testando Firebase Service...', 'info');
+                if (window.firebaseService) {
+                    log('✅ window.firebaseService existe', 'success');
+                    
+                    const initialized = await window.firebaseService.init();
+                    log('🔥 Firebase init result: ' + initialized, initialized ? 'success' : 'error');
+                    
+                    if (initialized) {
+                        const db = window.firebaseService.getDB();
+                        log('✅ Database obtido com sucesso', 'success');
+                    }
+                } else {
+                    log('❌ window.firebaseService não encontrado', 'error');
+                }
+                
+                // 2. Test Firebase Reports Service
+                log('2️⃣ Testando Firebase Reports Service...', 'info');
+                if (window.firebaseReportsService) {
+                    log('✅ window.firebaseReportsService existe', 'success');
+                    
+                    await window.firebaseReportsService.init();
+                    log('✅ Firebase Reports Service inicializado', 'success');
+                } else {
+                    log('❌ window.firebaseReportsService não encontrado', 'error');
+                }
+                
+                // 3. Test Auth
+                log('3️⃣ Testando autenticação...', 'info');
+                const authService = new AuthService();
+                const loginResult = await authService.login('bella_evans', 'sãocristovão2016');
+                
+                if (loginResult.success) {
+                    const currentUser = authService.getCurrentUser();
+                    log('✅ Login realizado: ' + currentUser.name + ' (' + currentUser.role + ')', 'success');
+                } else {
+                    log('❌ Erro no login: ' + loginResult.message, 'error');
+                    return;
+                }
+                
+                // 4. Test ReportsService
+                log('4️⃣ Testando ReportsService...', 'info');
+                const reportsService = new ReportsService();
+                log('✅ ReportsService criado', 'success');
+                
+                // Wait a bit for Firebase to initialize
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                log('🔍 Status do Firebase no ReportsService:', 'info');
+                log('   useFirebase: ' + reportsService.useFirebase, 'info');
+                log('   firebaseReports: ' + !!reportsService.firebaseReports, 'info');
+                
+                // 5. Test loading reports
+                log('5️⃣ Testando carregamento de relatórios...', 'info');
+                const currentUser = authService.getCurrentUser();
+                const reports = await reportsService.loadReports(currentUser.id);
+                
+                log('📊 Relatórios carregados: ' + reports.length, reports.length > 0 ? 'success' : 'warning');
+                
+                if (reports.length > 0) {
+                    reports.forEach((report, index) => {
+                        log(`   ${index + 1}. ${report.title} (${report.authorName})`, 'info');
+                    });
+                } else {
+                    log('⚠️ Nenhum relatório encontrado', 'warning');
+                }
+                
+                // 6. Test direct Firebase query
+                log('6️⃣ Testando consulta direta ao Firebase...', 'info');
+                if (window.firebaseService && window.firebaseService.isInitialized()) {
+                    const db = window.firebaseService.getDB();
+                    const snapshot = await db.collection('relatorios').get();
+                    log('📊 Documentos na coleção relatorios: ' + snapshot.size, 'info');
+                    
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        log(`   📄 ${doc.id}: ${data.titulo} (autor: ${data.autor})`, 'info');
+                    });
+                }
+                
+                log('🎯 Debug completo finalizado!', 'success');
+                
+            } catch (error) {
+                log('❌ Erro durante debug: ' + error.message, 'error');
+                console.error('Debug error:', error);
+            }
+        }
+
+        async function testFirebaseConnection() {
+            log('🔥 Testando conexão Firebase...', 'info');
+            
+            try {
+                if (window.firebaseService) {
+                    const initialized = await window.firebaseService.init();
+                    log('Firebase initialized: ' + initialized, initialized ? 'success' : 'error');
+                } else {
+                    log('Firebase service not found', 'error');
+                }
+            } catch (error) {
+                log('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function testReportsService() {
+            log('📋 Testando ReportsService...', 'info');
+            
+            try {
+                const authService = new AuthService();
+                await authService.login('bella_evans', 'sãocristovão2016');
+                const currentUser = authService.getCurrentUser();
+                
+                const reportsService = new ReportsService();
+                
+                // Wait for Firebase to initialize
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                const reports = await reportsService.loadReports(currentUser.id);
+                log('Reports loaded: ' + reports.length, 'success');
+                
+            } catch (error) {
+                log('Error: ' + error.message, 'error');
+            }
+        }
+
+        // Auto-run debug on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Página de debug carregada', 'info');
+            
+            // Auto-run debug after a short delay
+            setTimeout(() => {
+                debugFullFlow();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -144,37 +144,39 @@ class FirebaseReportsService {
     // Load reports for a user
     async loadReports(userId, isLeader = false) {
         try {
-            console.log('📋 Loading reports from Firebase for user:', userId);
+            console.log('📋 Loading reports from Firebase for user:', userId, 'isLeader:', isLeader);
             
-            let query;
-            if (isLeader) {
-                // Leaders see all reports
-                query = this.db.collection('relatorios')
-                    .orderBy('criadoEm', 'desc');
-            } else {
-                // Regular users see reports where:
-                // autor == userId OR compartilhadoCom contains userId
-                query = this.db.collection('relatorios');
+            if (!this.db) {
+                console.error('❌ Database not initialized');
+                return [];
             }
 
+            const query = this.db.collection('relatorios');
             const snapshot = await query.get();
+            
+            console.log(`📊 Found ${snapshot.size} total reports in Firebase`);
+            
             const reports = [];
             
             snapshot.forEach(doc => {
                 const data = doc.data();
+                console.log('📄 Processing report:', doc.id, 'autor:', data.autor, 'userId:', userId);
                 
                 // Se não é líder, filtrar apenas relatórios do usuário ou compartilhados com ele
                 if (!isLeader) {
                     const isAuthor = data.autor === userId;
                     const isSharedWith = data.compartilhadoCom && data.compartilhadoCom.includes(userId);
                     
+                    console.log('🔍 Filter check - isAuthor:', isAuthor, 'isSharedWith:', isSharedWith);
+                    
                     if (!isAuthor && !isSharedWith) {
+                        console.log('⏭️ Skipping report (not author and not shared)');
                         return; // Pular este relatório
                     }
                 }
                 
                 // Converter para formato esperado pelo frontend
-                reports.push({
+                const report = {
                     id: doc.id,
                     title: data.titulo,
                     description: data.conteudo,
@@ -184,18 +186,64 @@ class FirebaseReportsService {
                     missionDate: data.missionDate,
                     status: data.status,
                     sharedWith: data.compartilhadoCom || []
-                });
+                };
+                
+                console.log('✅ Adding report to list:', report.title);
+                reports.push(report);
             });
 
             // Ordenar por data de criação (mais recente primeiro)
             reports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-            console.log(`✅ Loaded ${reports.length} reports from Firebase`);
+            console.log(`✅ Loaded ${reports.length} reports from Firebase for user ${userId}`);
             return reports;
             
         } catch (error) {
             console.error('❌ Error loading reports from Firebase:', error);
+            console.error('Error details:', error);
             return [];
+        }
+    }
+
+    // Get a single report by ID
+    async getReport(reportId) {
+        try {
+            console.log('🔍 Getting report from Firebase:', reportId);
+            
+            if (!this.db) {
+                console.error('❌ Database not initialized');
+                return null;
+            }
+
+            const docRef = this.db.collection('relatorios').doc(reportId);
+            const doc = await docRef.get();
+            
+            if (!doc.exists) {
+                console.log('❌ Report not found in Firebase:', reportId);
+                return null;
+            }
+            
+            const data = doc.data();
+            console.log('✅ Report found in Firebase:', data.titulo);
+            
+            // Converter para formato esperado pelo frontend
+            const report = {
+                id: doc.id,
+                title: data.titulo,
+                description: data.conteudo,
+                authorId: data.autor,
+                authorName: data.authorName,
+                createdAt: new Date(data.criadoEm).toISOString(),
+                missionDate: data.missionDate,
+                status: data.status,
+                sharedWith: data.compartilhadoCom || []
+            };
+            
+            return report;
+            
+        } catch (error) {
+            console.error('❌ Error getting report from Firebase:', error);
+            return null;
         }
     }
 
