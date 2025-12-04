@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #000;
+            color: #fff;
+            padding: 20px;
+        }
+        .test-container {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            margin: 20px 0;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: rgba(74, 124, 89, 0.3); color: #4a7c59; }
+        .error { background: rgba(204, 0, 0, 0.3); color: #cc0000; }
+        .info { background: rgba(0, 212, 255, 0.3); color: #00d4ff; }
+        button {
+            padding: 10px 20px;
+            background: #00d4ff;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="color: #00d4ff;">Teste Dashboard Functionality</h1>
+    
+    <div class="test-container">
+        <h3>Controles de Teste</h3>
+        <button onclick="setupTestSession()">Setup Test Session</button>
+        <button onclick="testDashboardRedirect()">Test Dashboard Redirect</button>
+        <button onclick="testLogout()">Test Logout</button>
+        <button onclick="clearSession()">Clear Session</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <!-- Include required scripts -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/reports.js"></script>
+    <script src="scripts/teams.js"></script>
+
+    <script>
+        function log(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = `${new Date().toLocaleTimeString()}: ${message}`;
+            resultsDiv.appendChild(resultDiv);
+            console.log(message);
+        }
+
+        // Setup a test session
+        function setupTestSession() {
+            const testUser = {
+                "id": "user_001",
+                "username": "bella_evans",
+                "password": "sãocristovão2016",
+                "name": "Bella Evans",
+                "role": "agent",
+                "team": "team_alpha",
+                "createdAt": "2024-01-01T00:00:00Z"
+            };
+            
+            localStorage.setItem('ordem_paranormal_session', JSON.stringify(testUser));
+            log('Test session created for Bella Evans', 'success');
+        }
+
+        // Test dashboard redirect functionality
+        function testDashboardRedirect() {
+            log('Testing dashboard redirect...', 'info');
+            
+            // Clear session first
+            localStorage.removeItem('ordem_paranormal_session');
+            
+            // Create a mock dashboard controller
+            class MockDashboardController {
+                constructor() {
+                    this.authService = new AuthService();
+                    this.redirectCalled = false;
+                }
+
+                redirectToLogin() {
+                    this.redirectCalled = true;
+                    log('Redirect to login called (mocked)', 'info');
+                }
+
+                async init() {
+                    if (!this.authService.checkSession()) {
+                        this.redirectToLogin();
+                        return false;
+                    }
+                    return true;
+                }
+            }
+
+            const mockDashboard = new MockDashboardController();
+            mockDashboard.init().then(result => {
+                if (!result && mockDashboard.redirectCalled) {
+                    log('✓ Dashboard correctly redirects when no session', 'success');
+                } else {
+                    log('✗ Dashboard redirect test failed', 'error');
+                }
+            });
+        }
+
+        // Test logout functionality
+        function testLogout() {
+            log('Testing logout functionality...', 'info');
+            
+            // Setup session first
+            setupTestSession();
+            
+            const authService = new AuthService();
+            
+            // Check session exists
+            if (authService.checkSession()) {
+                log('Session exists before logout', 'info');
+                
+                // Mock window.location.href to avoid actual redirect
+                const originalLocation = window.location.href;
+                let redirectUrl = null;
+                
+                Object.defineProperty(window, 'location', {
+                    value: {
+                        href: originalLocation,
+                        set href(url) {
+                            redirectUrl = url;
+                        }
+                    },
+                    writable: true
+                });
+                
+                // Test logout
+                authService.handleLogout();
+                
+                // Check session is cleared
+                if (!authService.checkSession() && redirectUrl === 'login.html') {
+                    log('✓ Logout correctly clears session and redirects', 'success');
+                } else {
+                    log('✗ Logout test failed', 'error');
+                }
+                
+                // Restore original location
+                window.location.href = originalLocation;
+            } else {
+                log('No session to logout from', 'error');
+            }
+        }
+
+        // Clear session
+        function clearSession() {
+            localStorage.removeItem('ordem_paranormal_session');
+            log('Session cleared', 'info');
+        }
+
+        // Test dashboard controller functionality
+        async function testDashboardController() {
+            log('Testing dashboard controller...', 'info');
+            
+            // Setup test session
+            setupTestSession();
+            
+            try {
+                // Create dashboard controller instance
+                const dashboardController = {
+                    authService: new AuthService(),
+                    reportsService: new ReportsService(),
+                    teamService: new TeamService(),
+                    currentUser: null,
+
+                    async init() {
+                        if (!this.authService.checkSession()) {
+                            return false;
+                        }
+                        this.currentUser = this.authService.getCurrentUser();
+                        return this.currentUser !== null;
+                    },
+
+                    setupUserInterface() {
+                        return this.currentUser !== null;
+                    },
+
+                    async loadDashboardData() {
+                        const userReports = await this.reportsService.loadReports(this.currentUser.id);
+                        const sharedReports = await this.reportsService.loadSharedReports(this.currentUser.id);
+                        const teamReports = await this.teamService.getTeamReports(this.currentUser.id);
+                        
+                        return {
+                            userReports: userReports || [],
+                            sharedReports: sharedReports || [],
+                            teamReports: teamReports || []
+                        };
+                    }
+                };
+
+                // Test initialization
+                const initResult = await dashboardController.init();
+                if (initResult) {
+                    log('✓ Dashboard controller initializes correctly', 'success');
+                } else {
+                    log('✗ Dashboard controller initialization failed', 'error');
+                    return;
+                }
+
+                // Test user interface setup
+                const uiResult = dashboardController.setupUserInterface();
+                if (uiResult) {
+                    log('✓ User interface setup works', 'success');
+                } else {
+                    log('✗ User interface setup failed', 'error');
+                }
+
+                // Test data loading
+                const data = await dashboardController.loadDashboardData();
+                if (data && typeof data === 'object') {
+                    log(`✓ Dashboard data loaded: ${data.userReports.length} user reports, ${data.sharedReports.length} shared reports, ${data.teamReports.length} team reports`, 'success');
+                } else {
+                    log('✗ Dashboard data loading failed', 'error');
+                }
+
+            } catch (error) {
+                log(`✗ Dashboard controller test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Run tests on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Dashboard test page loaded', 'info');
+            
+            // Run automatic tests
+            setTimeout(() => {
+                testDashboardController();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

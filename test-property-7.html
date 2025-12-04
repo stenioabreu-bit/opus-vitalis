@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Test 7 - Report Sharing Access</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .test-header {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .test-results {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        
+        .test-case {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--border-color);
+        }
+        
+        .test-case.pass {
+            border-left-color: var(--success-green);
+        }
+        
+        .test-case.fail {
+            border-left-color: var(--error-red);
+        }
+        
+        .test-summary {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .summary-pass {
+            color: var(--success-green);
+        }
+        
+        .summary-fail {
+            color: var(--error-red);
+        }
+        
+        .test-details {
+            font-family: monospace;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            margin-top: 10px;
+        }
+        
+        .run-button {
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1 style="color: var(--accent-blue); margin-bottom: 10px;">Property Test 7</h1>
+            <h2 style="color: var(--text-primary); margin-bottom: 15px;">Report Sharing Access</h2>
+            <p style="color: var(--text-secondary);">
+                **Feature: simple-login-auth, Property 7: Report sharing access**<br>
+                **Validates: Requirements 7.4, 7.5**
+            </p>
+            <p style="color: var(--text-secondary); font-style: italic;">
+                For any report shared with a user, that user should have read-only access to the complete report content
+            </p>
+        </div>
+        
+        <div class="run-button">
+            <button id="run-test" class="btn btn-primary">Run Property Test (100 iterations)</button>
+        </div>
+        
+        <div id="test-results" class="test-results" style="display: none;">
+            <h3 style="color: var(--accent-blue); margin-bottom: 15px;">Test Results</h3>
+            <div id="test-output"></div>
+        </div>
+        
+        <div id="test-summary" class="test-summary" style="display: none;">
+            <h3 id="summary-title">Test Summary</h3>
+            <div id="summary-details"></div>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="dashboard.html" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script src="scripts/reports.js"></script>
+    <script>
+        // Property Test 7: Report sharing access
+        // **Feature: simple-login-auth, Property 7: Report sharing access**
+        // **Validates: Requirements 7.4, 7.5**
+        
+        class PropertyTest7 {
+            constructor() {
+                this.reportsService = new ReportsService();
+                this.dataLoader = new DataLoader();
+                this.testResults = [];
+                this.passCount = 0;
+                this.failCount = 0;
+            }
+            
+            // Generate random test data
+            generateTestData() {
+                const reportId = `test_report_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+                const authorId = `author_${Math.random().toString(36).substring(2, 11)}`;
+                const sharedUserId = `shared_user_${Math.random().toString(36).substring(2, 11)}`;
+                const nonSharedUserId = `non_shared_user_${Math.random().toString(36).substring(2, 11)}`;
+                
+                const report = {
+                    id: reportId,
+                    title: `Test Report ${Math.random().toString(36).substring(2, 11)}`,
+                    description: `Test description ${Math.random().toString(36).substring(2, 11)}`,
+                    missionDate: new Date().toISOString().split('T')[0],
+                    status: ['completed', 'partial', 'failed'][Math.floor(Math.random() * 3)],
+                    authorId: authorId,
+                    authorName: `Test Author ${Math.random().toString(36).substring(2, 11)}`,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    sharedWith: [sharedUserId], // Report is shared with this user
+                    isPublic: false
+                };
+                
+                return {
+                    report,
+                    authorId,
+                    sharedUserId,
+                    nonSharedUserId
+                };
+            }
+            
+            // Test the property: shared users should have read-only access
+            async testSharingAccess(testData) {
+                const { report, authorId, sharedUserId, nonSharedUserId } = testData;
+                
+                try {
+                    // Store the test report temporarily
+                    const localReports = this.reportsService.getLocalReports();
+                    localReports[report.id] = report;
+                    this.reportsService.saveLocalReports(localReports);
+                    
+                    // Test 1: Shared user should have access
+                    const sharedAccess = await this.reportsService.checkReportAccess(report.id, sharedUserId);
+                    if (!sharedAccess.hasAccess || sharedAccess.accessType !== 'shared') {
+                        return {
+                            passed: false,
+                            reason: `Shared user should have access but got: hasAccess=${sharedAccess.hasAccess}, accessType=${sharedAccess.accessType}`
+                        };
+                    }
+                    
+                    // Test 2: Non-shared user should not have access
+                    const nonSharedAccess = await this.reportsService.checkReportAccess(report.id, nonSharedUserId);
+                    if (nonSharedAccess.hasAccess) {
+                        return {
+                            passed: false,
+                            reason: `Non-shared user should not have access but got: hasAccess=${nonSharedAccess.hasAccess}, accessType=${nonSharedAccess.accessType}`
+                        };
+                    }
+                    
+                    // Test 3: Author should have owner access
+                    const authorAccess = await this.reportsService.checkReportAccess(report.id, authorId);
+                    if (!authorAccess.hasAccess || authorAccess.accessType !== 'owner') {
+                        return {
+                            passed: false,
+                            reason: `Author should have owner access but got: hasAccess=${authorAccess.hasAccess}, accessType=${authorAccess.accessType}`
+                        };
+                    }
+                    
+                    // Test 4: Shared user should be able to load the report
+                    const loadedReport = await this.reportsService.getReport(report.id);
+                    if (!loadedReport || loadedReport.id !== report.id) {
+                        return {
+                            passed: false,
+                            reason: `Shared user should be able to load report but got: ${loadedReport ? 'different report' : 'null'}`
+                        };
+                    }
+                    
+                    // Test 5: Report content should be complete for shared user
+                    const requiredFields = ['id', 'title', 'description', 'missionDate', 'status', 'authorId', 'authorName', 'createdAt'];
+                    for (const field of requiredFields) {
+                        if (!loadedReport[field]) {
+                            return {
+                                passed: false,
+                                reason: `Report missing required field for shared access: ${field}`
+                            };
+                        }
+                    }
+                    
+                    // Clean up test data
+                    delete localReports[report.id];
+                    this.reportsService.saveLocalReports(localReports);
+                    
+                    return {
+                        passed: true,
+                        reason: 'All sharing access checks passed'
+                    };
+                    
+                } catch (error) {
+                    return {
+                        passed: false,
+                        reason: `Test error: ${error.message}`
+                    };
+                }
+            }
+            
+            // Run the property test with multiple iterations
+            async runPropertyTest(iterations = 100) {
+                this.testResults = [];
+                this.passCount = 0;
+                this.failCount = 0;
+                
+                const startTime = Date.now();
+                
+                for (let i = 0; i < iterations; i++) {
+                    const testData = this.generateTestData();
+                    const result = await this.testSharingAccess(testData);
+                    
+                    const testCase = {
+                        iteration: i + 1,
+                        passed: result.passed,
+                        reason: result.reason,
+                        testData: {
+                            reportId: testData.report.id,
+                            authorId: testData.authorId,
+                            sharedUserId: testData.sharedUserId,
+                            nonSharedUserId: testData.nonSharedUserId
+                        }
+                    };
+                    
+                    this.testResults.push(testCase);
+                    
+                    if (result.passed) {
+                        this.passCount++;
+                    } else {
+                        this.failCount++;
+                    }
+                    
+                    // Update progress
+                    this.updateProgress(i + 1, iterations);
+                }
+                
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                return {
+                    totalTests: iterations,
+                    passed: this.passCount,
+                    failed: this.failCount,
+                    duration: duration,
+                    results: this.testResults
+                };
+            }
+            
+            // Update progress display
+            updateProgress(current, total) {
+                const output = document.getElementById('test-output');
+                const progress = Math.round((current / total) * 100);
+                
+                if (current === 1) {
+                    output.innerHTML = `<div class="test-case">Running property test... ${progress}% (${current}/${total})</div>`;
+                } else {
+                    const lastCase = output.lastElementChild;
+                    if (lastCase && lastCase.textContent.includes('Running property test...')) {
+                        lastCase.textContent = `Running property test... ${progress}% (${current}/${total})`;
+                    }
+                }
+            }
+            
+            // Display test results
+            displayResults(summary) {
+                const output = document.getElementById('test-output');
+                const summaryDiv = document.getElementById('test-summary');
+                const summaryTitle = document.getElementById('summary-title');
+                const summaryDetails = document.getElementById('summary-details');
+                
+                // Clear progress indicator
+                output.innerHTML = '';
+                
+                // Show failed test cases (limit to first 10 for readability)
+                const failedTests = this.testResults.filter(test => !test.passed).slice(0, 10);
+                
+                if (failedTests.length > 0) {
+                    failedTests.forEach(test => {
+                        const testDiv = document.createElement('div');
+                        testDiv.className = 'test-case fail';
+                        testDiv.innerHTML = `
+                            <strong>Iteration ${test.iteration} - FAILED</strong>
+                            <div class="test-details">
+                                Reason: ${test.reason}<br>
+                                Report ID: ${test.testData.reportId}<br>
+                                Author: ${test.testData.authorId}<br>
+                                Shared User: ${test.testData.sharedUserId}<br>
+                                Non-shared User: ${test.testData.nonSharedUserId}
+                            </div>
+                        `;
+                        output.appendChild(testDiv);
+                    });
+                    
+                    if (this.failCount > 10) {
+                        const moreDiv = document.createElement('div');
+                        moreDiv.className = 'test-case';
+                        moreDiv.innerHTML = `<em>... and ${this.failCount - 10} more failed tests</em>`;
+                        output.appendChild(moreDiv);
+                    }
+                } else {
+                    const successDiv = document.createElement('div');
+                    successDiv.className = 'test-case pass';
+                    successDiv.innerHTML = '<strong>All test iterations passed!</strong>';
+                    output.appendChild(successDiv);
+                }
+                
+                // Show summary
+                summaryDiv.style.display = 'block';
+                const isSuccess = summary.failed === 0;
+                
+                summaryTitle.textContent = isSuccess ? 'Property Test PASSED' : 'Property Test FAILED';
+                summaryTitle.className = isSuccess ? 'summary-pass' : 'summary-fail';
+                
+                summaryDetails.innerHTML = `
+                    <p><strong>Total Iterations:</strong> ${summary.totalTests}</p>
+                    <p><strong>Passed:</strong> <span style="color: var(--success-green);">${summary.passed}</span></p>
+                    <p><strong>Failed:</strong> <span style="color: var(--error-red);">${summary.failed}</span></p>
+                    <p><strong>Success Rate:</strong> ${Math.round((summary.passed / summary.totalTests) * 100)}%</p>
+                    <p><strong>Duration:</strong> ${summary.duration}ms</p>
+                `;
+            }
+        }
+        
+        // Initialize test when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const propertyTest = new PropertyTest7();
+            const runButton = document.getElementById('run-test');
+            const resultsDiv = document.getElementById('test-results');
+            
+            runButton.addEventListener('click', async function() {
+                runButton.disabled = true;
+                runButton.textContent = 'Running Test...';
+                resultsDiv.style.display = 'block';
+                
+                try {
+                    const summary = await propertyTest.runPropertyTest(100);
+                    propertyTest.displayResults(summary);
+                    
+                    // Log results for debugging
+                    console.log('Property Test 7 Results:', summary);
+                    
+                } catch (error) {
+                    console.error('Property test error:', error);
+                    document.getElementById('test-output').innerHTML = `
+                        <div class="test-case fail">
+                            <strong>Test Error</strong>
+                            <div class="test-details">Error: ${error.message}</div>
+                        </div>
+                    `;
+                } finally {
+                    runButton.disabled = false;
+                    runButton.textContent = 'Run Property Test (100 iterations)';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

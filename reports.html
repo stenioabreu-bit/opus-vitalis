@@ -17,6 +17,49 @@
             align-items: center;
         }
         
+        .page-header h1 {
+            color: var(--accent-blue);
+            margin: 0;
+        }
+        
+        .back-link {
+            color: var(--accent-blue);
+            text-decoration: none;
+            margin-bottom: 20px;
+            display: inline-block;
+            transition: color 0.3s ease;
+        }
+        
+        .back-link:hover {
+            color: #0099cc;
+        }
+        
+        .filters-section {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+        }
+        
+        .filters-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .filter-group label {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
         .reports-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -26,32 +69,68 @@
         
         .report-card {
             background: var(--card-bg);
-            padding: 20px;
-            border-radius: 8px;
             border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
             transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
         }
         
         .report-card:hover {
             border-color: var(--accent-blue);
             box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
         }
         
         .report-title {
             color: var(--accent-blue);
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            margin: 0;
+            line-height: 1.3;
+            flex: 1;
+            margin-right: 10px;
         }
         
-        .report-meta {
-            color: var(--text-secondary);
-            font-size: 0.9em;
-            margin-bottom: 15px;
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        
+        .status-completed {
+            background: rgba(74, 124, 89, 0.2);
+            color: var(--success-green);
+            border: 1px solid var(--success-green);
+        }
+        
+        .status-partial {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid #ffc107;
+        }
+        
+        .status-failed {
+            background: rgba(204, 0, 0, 0.2);
+            color: var(--error-red);
+            border: 1px solid var(--error-red);
         }
         
         .report-description {
-            color: var(--text-primary);
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            line-height: 1.4;
             margin-bottom: 15px;
             display: -webkit-box;
             -webkit-line-clamp: 3;
@@ -59,50 +138,89 @@
             overflow: hidden;
         }
         
+        .report-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+        
+        .report-date {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
         .report-actions {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
         }
         
-        .report-actions .btn {
-            font-size: 0.9em;
-            padding: 8px 16px;
-        }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 4px 8px;
+        .action-btn {
+            padding: 5px 10px;
+            border: none;
             border-radius: 4px;
             font-size: 0.8em;
-            font-weight: bold;
-            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
         
-        .status-completed {
-            background: rgba(74, 124, 89, 0.3);
-            color: var(--success-green);
+        .action-btn.view {
+            background: var(--accent-blue);
+            color: white;
         }
         
-        .status-failed {
-            background: rgba(204, 0, 0, 0.3);
-            color: var(--error-red);
+        .action-btn.view:hover {
+            background: #0099cc;
         }
         
-        .status-partial {
-            background: rgba(0, 212, 255, 0.3);
+        .action-btn.edit {
+            background: transparent;
             color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
+        }
+        
+        .action-btn.edit:hover {
+            background: var(--accent-blue);
+            color: white;
         }
         
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: var(--text-secondary);
+            background: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
         }
         
         .empty-state h3 {
             color: var(--accent-blue);
             margin-bottom: 15px;
+        }
+        
+        .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+        }
+        
+        .loading-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+        
+        .sort-info {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            text-align: right;
         }
         
         @media (max-width: 768px) {
@@ -112,130 +230,340 @@
                 text-align: center;
             }
             
+            .filters-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
             .reports-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .report-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .report-title {
+                margin-right: 0;
+            }
+            
+            .report-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .report-actions {
+                width: 100%;
+                justify-content: flex-end;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <a href="dashboard.html" class="back-link">← Voltar ao Dashboard</a>
+        
         <div class="page-header">
             <div>
-                <h1 style="color: var(--accent-blue); margin-bottom: 5px;">Meus Relatórios</h1>
-                <p style="color: var(--text-secondary);">Histórico de missões documentadas</p>
+                <h1>Meus Relatórios</h1>
+                <p style="color: var(--text-secondary); margin: 5px 0 0 0;">
+                    Gerencie seus relatórios de missões
+                </p>
             </div>
-            
             <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <a href="shared-reports.html" class="btn btn-secondary">Relatórios Compartilhados</a>
                 <a href="create-report.html" class="btn btn-primary">Novo Relatório</a>
-                <a href="dashboard.html" class="btn btn-secondary">Dashboard</a>
             </div>
         </div>
         
         <div id="message-container"></div>
         
-        <div id="reports-container">
-            <div class="empty-state">
-                <h3>Nenhum relatório encontrado</h3>
-                <p>Você ainda não criou nenhum relatório de missão.</p>
-                <p>Clique em "Novo Relatório" para começar a documentar suas investigações paranormais.</p>
-                <div style="margin-top: 20px;">
-                    <a href="create-report.html" class="btn btn-primary">Criar Primeiro Relatório</a>
+        <div class="filters-section">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label for="status-filter">Status</label>
+                    <select id="status-filter">
+                        <option value="">Todos os Status</option>
+                        <option value="completed">Concluída</option>
+                        <option value="partial">Parcial</option>
+                        <option value="failed">Falhou</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="date-from">Data Inicial</label>
+                    <input type="date" id="date-from">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="date-to">Data Final</label>
+                    <input type="date" id="date-to">
+                </div>
+                
+                <div class="filter-group">
+                    <button id="clear-filters" class="btn btn-secondary">Limpar</button>
                 </div>
             </div>
+        </div>
+        
+        <div class="sort-info" id="sort-info">
+            Ordenado por data de criação (mais recente primeiro)
+        </div>
+        
+        <div id="loading-state" class="loading-state">
+            <div class="loading"></div>
+            <p>Carregando relatórios...</p>
+        </div>
+        
+        <div id="reports-container" class="reports-grid" style="display: none;">
+            <!-- Reports will be loaded here dynamically -->
+        </div>
+        
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <h3>Nenhum relatório encontrado</h3>
+            <p>Você ainda não criou nenhum relatório de missão.</p>
+            <a href="create-report.html" class="btn btn-primary">Criar Primeiro Relatório</a>
         </div>
     </div>
 
     <!-- Scripts -->
     <script src="scripts/utils.js"></script>
     <script src="scripts/auth.js"></script>
+    <script src="scripts/data-loader.js"></script>
     <script src="scripts/reports.js"></script>
     <script>
-        // Initialize reports page functionality
-        document.addEventListener('DOMContentLoaded', async function() {
-            const authService = new AuthService();
-            const reportsService = new ReportsService();
-            
-            // Check authentication
-            if (!authService.checkSession()) {
-                window.location.href = 'login.html';
-                return;
+        // Reports List Controller
+        class ReportsListController {
+            constructor() {
+                this.authService = new AuthService();
+                this.reportsService = new ReportsService();
+                this.currentUser = null;
+                this.allReports = [];
+                this.filteredReports = [];
             }
-            
-            const currentUser = authService.getCurrentUser();
-            const reportsContainer = document.getElementById('reports-container');
-            
-            // Load user reports
-            try {
-                const reports = await reportsService.loadReports(currentUser.id);
-                
-                if (reports && reports.length > 0) {
-                    displayReports(reports);
+
+            // Initialize the page
+            async init() {
+                // Check authentication
+                if (!this.authService.checkSession()) {
+                    window.location.href = 'login.html';
+                    return;
                 }
-                // Empty state is already shown by default
+
+                this.currentUser = this.authService.getCurrentUser();
+                if (!this.currentUser) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // Setup event handlers
+                this.setupFilterHandlers();
                 
-            } catch (error) {
-                console.error('Error loading reports:', error);
-                Utils.showMessage('Erro ao carregar relatórios.', 'error');
+                // Load reports
+                await this.loadReports();
             }
-            
-            // Function to display reports
-            function displayReports(reports) {
-                const reportsGrid = document.createElement('div');
-                reportsGrid.className = 'reports-grid';
+
+            // Setup filter event handlers
+            setupFilterHandlers() {
+                const statusFilter = document.getElementById('status-filter');
+                const dateFromFilter = document.getElementById('date-from');
+                const dateToFilter = document.getElementById('date-to');
+                const clearFiltersBtn = document.getElementById('clear-filters');
+
+                // Filter change handlers
+                statusFilter.addEventListener('change', () => this.applyFilters());
+                dateFromFilter.addEventListener('change', () => this.applyFilters());
+                dateToFilter.addEventListener('change', () => this.applyFilters());
                 
-                reports.forEach(report => {
-                    const reportCard = createReportCard(report);
-                    reportsGrid.appendChild(reportCard);
+                // Clear filters
+                clearFiltersBtn.addEventListener('click', () => this.clearFilters());
+            }
+
+            // Load reports from service
+            async loadReports() {
+                try {
+                    this.showLoadingState();
+                    
+                    // Load user's reports
+                    this.allReports = await this.reportsService.loadReports(this.currentUser.id);
+                    
+                    // Sort by creation date (most recent first)
+                    this.allReports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    
+                    // Apply initial filters (none)
+                    this.applyFilters();
+                    
+                } catch (error) {
+                    console.error('Error loading reports:', error);
+                    Utils.showMessage('Erro ao carregar relatórios.', 'error');
+                    this.showEmptyState();
+                }
+            }
+
+            // Apply current filters
+            applyFilters() {
+                const statusFilter = document.getElementById('status-filter').value;
+                const dateFromFilter = document.getElementById('date-from').value;
+                const dateToFilter = document.getElementById('date-to').value;
+
+                this.filteredReports = this.allReports.filter(report => {
+                    // Status filter
+                    if (statusFilter && report.status !== statusFilter) {
+                        return false;
+                    }
+
+                    // Date range filter
+                    if (dateFromFilter) {
+                        const reportDate = new Date(report.missionDate);
+                        const fromDate = new Date(dateFromFilter);
+                        if (reportDate < fromDate) {
+                            return false;
+                        }
+                    }
+
+                    if (dateToFilter) {
+                        const reportDate = new Date(report.missionDate);
+                        const toDate = new Date(dateToFilter);
+                        if (reportDate > toDate) {
+                            return false;
+                        }
+                    }
+
+                    return true;
                 });
-                
-                reportsContainer.innerHTML = '';
-                reportsContainer.appendChild(reportsGrid);
+
+                this.displayReports();
             }
-            
-            // Function to create report card
-            function createReportCard(report) {
-                const card = document.createElement('div');
-                card.className = 'report-card';
-                
+
+            // Clear all filters
+            clearFilters() {
+                document.getElementById('status-filter').value = '';
+                document.getElementById('date-from').value = '';
+                document.getElementById('date-to').value = '';
+                this.applyFilters();
+            }
+
+            // Display reports in the grid
+            displayReports() {
+                const container = document.getElementById('reports-container');
+                const emptyState = document.getElementById('empty-state');
+                const loadingState = document.getElementById('loading-state');
+
+                // Hide loading state
+                loadingState.style.display = 'none';
+
+                if (this.filteredReports.length === 0) {
+                    container.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                // Show reports container
+                container.style.display = 'grid';
+                emptyState.style.display = 'none';
+
+                // Generate HTML for reports
+                container.innerHTML = this.filteredReports.map(report => this.generateReportCard(report)).join('');
+
+                // Add click handlers for report cards
+                this.setupReportCardHandlers();
+            }
+
+            // Generate HTML for a single report card
+            generateReportCard(report) {
                 const statusClass = `status-${report.status}`;
-                const statusText = {
-                    'completed': 'Concluída',
-                    'failed': 'Falhou',
-                    'partial': 'Parcial'
-                }[report.status] || report.status;
-                
-                card.innerHTML = `
-                    <div class="report-title">${Utils.sanitizeHtml(report.title)}</div>
-                    <div class="report-meta">
-                        <span class="status-badge ${statusClass}">${statusText}</span>
-                        <span style="margin-left: 10px;">${Utils.formatDate(report.missionDate)}</span>
-                    </div>
-                    <div class="report-description">${Utils.sanitizeHtml(report.description)}</div>
-                    <div class="report-actions">
-                        <button class="btn btn-primary" onclick="viewReport('${report.id}')">Ver Detalhes</button>
-                        <button class="btn btn-secondary" onclick="shareReport('${report.id}')">Compartilhar</button>
-                        <button class="btn btn-danger" onclick="deleteReport('${report.id}')">Excluir</button>
+                const statusText = this.getStatusText(report.status);
+                const formattedDate = Utils.formatDate(report.missionDate);
+                const createdDate = Utils.formatDate(report.createdAt);
+
+                return `
+                    <div class="report-card" data-report-id="${report.id}">
+                        <div class="report-header">
+                            <h3 class="report-title">${Utils.sanitizeHtml(report.title)}</h3>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        
+                        <div class="report-description">
+                            ${Utils.sanitizeHtml(report.description)}
+                        </div>
+                        
+                        <div class="report-meta">
+                            <div class="report-date">
+                                <span>📅 ${formattedDate}</span>
+                            </div>
+                            <div class="report-actions">
+                                <a href="view-report.html?id=${report.id}" class="action-btn view">
+                                    👁️ Ver
+                                </a>
+                                <button class="action-btn edit" data-action="edit" data-report-id="${report.id}">
+                                    ✏️ Editar
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 `;
-                
-                return card;
             }
-            
-            // Global functions for report actions (placeholders)
-            window.viewReport = function(reportId) {
-                window.location.href = `view-report.html?id=${reportId}`;
-            };
-            
-            window.shareReport = function(reportId) {
-                Utils.showMessage('Funcionalidade de compartilhamento será implementada em breve.', 'info');
-            };
-            
-            window.deleteReport = function(reportId) {
-                if (confirm('Tem certeza que deseja excluir este relatório? Esta ação não pode ser desfeita.')) {
-                    Utils.showMessage('Funcionalidade de exclusão será implementada em breve.', 'info');
-                }
-            };
+
+            // Get status text in Portuguese
+            getStatusText(status) {
+                const statusMap = {
+                    'completed': 'Concluída',
+                    'partial': 'Parcial',
+                    'failed': 'Falhou'
+                };
+                return statusMap[status] || status;
+            }
+
+            // Setup event handlers for report cards
+            setupReportCardHandlers() {
+                // Card click handlers (for viewing)
+                const reportCards = document.querySelectorAll('.report-card');
+                reportCards.forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        // Don't trigger if clicking on action buttons
+                        if (e.target.closest('.action-btn')) {
+                            return;
+                        }
+                        
+                        const reportId = card.dataset.reportId;
+                        window.location.href = `view-report.html?id=${reportId}`;
+                    });
+                });
+
+                // Edit button handlers
+                const editButtons = document.querySelectorAll('.action-btn.edit');
+                editButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const reportId = button.dataset.reportId;
+                        // For now, redirect to view page (edit functionality will be added later)
+                        window.location.href = `view-report.html?id=${reportId}&edit=true`;
+                    });
+                });
+            }
+
+            // Show loading state
+            showLoadingState() {
+                document.getElementById('loading-state').style.display = 'block';
+                document.getElementById('reports-container').style.display = 'none';
+                document.getElementById('empty-state').style.display = 'none';
+            }
+
+            // Show empty state
+            showEmptyState() {
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('reports-container').style.display = 'none';
+                document.getElementById('empty-state').style.display = 'block';
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', async function() {
+            const controller = new ReportsListController();
+            await controller.init();
         });
     </script>
 </body>

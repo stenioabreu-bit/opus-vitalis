@@ -8,11 +8,11 @@
     "team": "team_alpha",
     "createdAt": "2024-01-01T00:00:00Z"
   },
-  "carlos_silva": {
+  "melissa_kardelis": {
     "id": "user_002",
-    "username": "carlos_silva",
-    "password": "lider2024",
-    "name": "Carlos Silva",
+    "username": "melissa_kardelis",
+    "password": "conceito",
+    "name": "Melissa Kardelis",
     "role": "leader",
     "team": "team_alpha",
     "createdAt": "2024-01-01T00:00:00Z"

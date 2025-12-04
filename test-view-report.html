@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test View Report</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1 style="color: var(--accent-blue);">Test View Report Functionality</h1>
+        
+        <div id="test-results" style="margin: 20px 0; padding: 20px; background: var(--card-bg); border-radius: 8px;">
+            <h3 style="color: var(--accent-blue);">Test Results:</h3>
+            <div id="test-output"></div>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <button onclick="runTests()" class="btn btn-primary">Run Tests</button>
+            <a href="view-report.html?id=report_001" class="btn btn-secondary">Test View Report</a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script src="scripts/reports.js"></script>
+    
+    <script>
+        async function runTests() {
+            const output = document.getElementById('test-output');
+            output.innerHTML = '<div class="loading"></div> Running tests...';
+            
+            const results = [];
+            
+            try {
+                // Test 1: ReportsService instantiation
+                const reportsService = new ReportsService();
+                results.push('✅ ReportsService instantiated successfully');
+                
+                // Test 2: Test getReport method
+                const report = await reportsService.getReport('report_001');
+                if (report && report.id === 'report_001') {
+                    results.push('✅ getReport method works correctly');
+                } else {
+                    results.push('❌ getReport method failed');
+                }
+                
+                // Test 3: Test getAvailableUsers method
+                const users = await reportsService.getAvailableUsers('user_001');
+                if (Array.isArray(users)) {
+                    results.push(`✅ getAvailableUsers returned ${users.length} users`);
+                } else {
+                    results.push('❌ getAvailableUsers failed');
+                }
+                
+                // Test 4: Test updateReport method (should fail without proper auth)
+                const updateResult = await reportsService.updateReport('report_001', {
+                    title: 'Test Update',
+                    description: 'Test description',
+                    missionDate: '2024-12-01',
+                    status: 'completed'
+                }, 'user_999');
+                
+                if (!updateResult.success) {
+                    results.push('✅ updateReport correctly rejects unauthorized users');
+                } else {
+                    results.push('❌ updateReport should reject unauthorized users');
+                }
+                
+                // Test 5: Test deleteReport method (should fail without proper auth)
+                const deleteResult = await reportsService.deleteReport('report_001', 'user_999');
+                if (!deleteResult.success) {
+                    results.push('✅ deleteReport correctly rejects unauthorized users');
+                } else {
+                    results.push('❌ deleteReport should reject unauthorized users');
+                }
+                
+            } catch (error) {
+                results.push(`❌ Test failed with error: ${error.message}`);
+            }
+            
+            // Display results
+            output.innerHTML = results.map(result => `<div style="margin: 5px 0; color: ${result.startsWith('✅') ? 'var(--success-green)' : 'var(--error-red)'};">${result}</div>`).join('');
+        }
+        
+        // Auto-run tests on page load
+        document.addEventListener('DOMContentLoaded', runTests);
+    </script>
+</body>
+</html>

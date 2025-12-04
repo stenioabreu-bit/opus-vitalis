@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios da Equipe - Ordem Paranormal</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="header-title">Relatórios da Equipe</h1>
+                <div class="header-actions">
+                    <span id="userWelcome" class="user-welcome"></span>
+                    <button id="logoutBtn" class="btn btn-secondary">Sair</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-link">Dashboard</a>
+            <a href="reports.html" class="nav-link">Meus Relatórios</a>
+            <a href="create-report.html" class="nav-link">Criar Relatório</a>
+            <a href="shared-reports.html" class="nav-link">Relatórios Compartilhados</a>
+            <a href="team-reports.html" class="nav-link active">Relatórios da Equipe</a>
+        </nav>
+
+        <!-- Team Info -->
+        <div id="teamInfo" class="team-info" style="display: none;">
+            <h2 id="teamName" class="team-name"></h2>
+            <p id="teamStats" class="team-stats"></p>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label for="agentFilter">Filtrar por Agente:</label>
+                    <select id="agentFilter" class="filter-select">
+                        <option value="">Todos os agentes</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="statusFilter">Filtrar por Status:</label>
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">Todos os status</option>
+                        <option value="completed">Concluída</option>
+                        <option value="failed">Falhada</option>
+                        <option value="partial">Parcial</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="dateFilter">Filtrar por Data:</label>
+                    <select id="dateFilter" class="filter-select">
+                        <option value="">Todas as datas</option>
+                        <option value="today">Hoje</option>
+                        <option value="week">Esta semana</option>
+                        <option value="month">Este mês</option>
+                    </select>
+                </div>
+                <button id="clearFilters" class="btn btn-secondary">Limpar Filtros</button>
+            </div>
+        </div>
+
+        <!-- Reports List -->
+        <div class="reports-section">
+            <div id="loadingMessage" class="loading-message">
+                <div class="loading-spinner"></div>
+                <p>Carregando relatórios da equipe...</p>
+            </div>
+
+            <div id="errorMessage" class="error-message" style="display: none;">
+                <p id="errorText"></p>
+                <button id="retryBtn" class="btn btn-primary">Tentar Novamente</button>
+            </div>
+
+            <div id="noReportsMessage" class="no-reports-message" style="display: none;">
+                <h3>Nenhum relatório encontrado</h3>
+                <p>Sua equipe ainda não criou nenhum relatório ou os filtros aplicados não retornaram resultados.</p>
+            </div>
+
+            <div id="reportsList" class="reports-list" style="display: none;">
+                <!-- Reports will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- Report Modal -->
+        <div id="reportModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalReportTitle"></h3>
+                    <button id="closeModal" class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="report-details">
+                        <div class="report-meta">
+                            <span id="modalReportAuthor" class="report-author"></span>
+                            <span id="modalReportDate" class="report-date"></span>
+                            <span id="modalReportStatus" class="report-status"></span>
+                        </div>
+                        <div class="report-content">
+                            <h4>Descrição da Missão:</h4>
+                            <p id="modalReportDescription"></p>
+                        </div>
+                        <div class="report-mission-date">
+                            <h4>Data da Missão:</h4>
+                            <p id="modalMissionDate"></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Comments Section -->
+                    <div class="comments-section">
+                        <h4>Comentários do Líder:</h4>
+                        <div id="commentsList" class="comments-list">
+                            <!-- Comments will be loaded here -->
+                        </div>
+                        <div class="add-comment">
+                            <textarea id="newComment" placeholder="Adicionar comentário ou feedback..." rows="3"></textarea>
+                            <button id="addCommentBtn" class="btn btn-primary">Adicionar Comentário</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/reports.js"></script>
+    <script src="scripts/teams.js"></script>
+    <script>
+        // Team Reports Page Logic
+        class TeamReportsPage {
+            constructor() {
+                this.authService = new AuthService();
+                this.reportsService = new ReportsService();
+                this.teamsService = new TeamsService();
+                this.currentUser = null;
+                this.allTeamReports = [];
+                this.filteredReports = [];
+                this.currentReportId = null;
+                this.reportComments = {};
+            }
+
+            async init() {
+                // Check authentication
+                if (!this.authService.checkSession()) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                this.currentUser = this.authService.getCurrentUser();
+                
+                // Check if user is a leader
+                if (!this.currentUser || this.currentUser.role !== 'leader') {
+                    this.showError('Acesso negado. Apenas líderes de equipe podem acessar esta página.');
+                    return;
+                }
+
+                this.setupEventListeners();
+                this.updateUserWelcome();
+                await this.loadTeamReports();
+                this.loadComments();
+            }
+
+            setupEventListeners() {
+                // Logout
+                document.getElementById('logoutBtn').addEventListener('click', () => {
+                    this.authService.handleLogout();
+                });
+
+                // Filters
+                document.getElementById('agentFilter').addEventListener('change', () => this.applyFilters());
+                document.getElementById('statusFilter').addEventListener('change', () => this.applyFilters());
+                document.getElementById('dateFilter').addEventListener('change', () => this.applyFilters());
+                document.getElementById('clearFilters').addEventListener('click', () => this.clearFilters());
+
+                // Modal
+                document.getElementById('closeModal').addEventListener('click', () => this.closeModal());
+                document.getElementById('reportModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'reportModal') this.closeModal();
+                });
+
+                // Comments
+                document.getElementById('addCommentBtn').addEventListener('click', () => this.addComment());
+
+                // Retry button
+                document.getElementById('retryBtn').addEventListener('click', () => this.loadTeamReports());
+            }
+
+            updateUserWelcome() {
+                const welcomeElement = document.getElementById('userWelcome');
+                if (this.currentUser) {
+                    welcomeElement.textContent = `Bem-vindo, ${this.currentUser.name || this.currentUser.username}`;
+                }
+            }
+
+            async loadTeamReports() {
+                try {
+                    this.showLoading();
+                    
+                    const result = await this.teamsService.getTeamReports(this.currentUser.id);
+                    
+                    if (!result.success) {
+                        this.showError(result.message);
+                        return;
+                    }
+
+                    this.allTeamReports = result.reports;
+                    this.filteredReports = [...this.allTeamReports];
+
+                    // Update team info
+                    this.updateTeamInfo(result.team, result.totalReports);
+                    
+                    // Populate agent filter
+                    this.populateAgentFilter();
+                    
+                    // Display reports
+                    this.displayReports();
+                    
+                } catch (error) {
+                    console.error('Error loading team reports:', error);
+                    this.showError('Erro ao carregar relatórios da equipe. Tente novamente.');
+                }
+            }
+
+            updateTeamInfo(team, totalReports) {
+                const teamInfoElement = document.getElementById('teamInfo');
+                const teamNameElement = document.getElementById('teamName');
+                const teamStatsElement = document.getElementById('teamStats');
+
+                teamNameElement.textContent = team.name;
+                teamStatsElement.textContent = `${totalReports} relatório${totalReports !== 1 ? 's' : ''} encontrado${totalReports !== 1 ? 's' : ''}`;
+                
+                teamInfoElement.style.display = 'block';
+            }
+
+            populateAgentFilter() {
+                const agentFilter = document.getElementById('agentFilter');
+                const agents = [...new Set(this.allTeamReports.map(report => report.authorName))].sort();
+                
+                // Clear existing options (except "All agents")
+                agentFilter.innerHTML = '<option value="">Todos os agentes</option>';
+                
+                agents.forEach(agentName => {
+                    const option = document.createElement('option');
+                    option.value = agentName;
+                    option.textContent = agentName;
+                    agentFilter.appendChild(option);
+                });
+            }
+
+            applyFilters() {
+                const agentFilter = document.getElementById('agentFilter').value;
+                const statusFilter = document.getElementById('statusFilter').value;
+                const dateFilter = document.getElementById('dateFilter').value;
+
+                this.filteredReports = this.allTeamReports.filter(report => {
+                    // Agent filter
+                    if (agentFilter && report.authorName !== agentFilter) {
+                        return false;
+                    }
+
+                    // Status filter
+                    if (statusFilter && report.status !== statusFilter) {
+                        return false;
+                    }
+
+                    // Date filter
+                    if (dateFilter) {
+                        const reportDate = new Date(report.createdAt);
+                        const now = new Date();
+                        
+                        switch (dateFilter) {
+                            case 'today':
+                                if (reportDate.toDateString() !== now.toDateString()) {
+                                    return false;
+                                }
+                                break;
+                            case 'week':
+                                const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                                if (reportDate < weekAgo) {
+                                    return false;
+                                }
+                                break;
+                            case 'month':
+                                const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+                                if (reportDate < monthAgo) {
+                                    return false;
+                                }
+                                break;
+                        }
+                    }
+
+                    return true;
+                });
+
+                this.displayReports();
+            }
+
+            clearFilters() {
+                document.getElementById('agentFilter').value = '';
+                document.getElementById('statusFilter').value = '';
+                document.getElementById('dateFilter').value = '';
+                this.filteredReports = [...this.allTeamReports];
+                this.displayReports();
+            }
+
+            displayReports() {
+                const reportsListElement = document.getElementById('reportsList');
+                const noReportsElement = document.getElementById('noReportsMessage');
+
+                this.hideLoading();
+                this.hideError();
+
+                if (this.filteredReports.length === 0) {
+                    reportsListElement.style.display = 'none';
+                    noReportsElement.style.display = 'block';
+                    return;
+                }
+
+                noReportsElement.style.display = 'none';
+                reportsListElement.style.display = 'block';
+
+                reportsListElement.innerHTML = this.filteredReports.map(report => `
+                    <div class="report-card" data-report-id="${report.id}">
+                        <div class="report-header">
+                            <h3 class="report-title">${this.escapeHtml(report.title)}</h3>
+                            <span class="report-status status-${report.status}">${this.getStatusText(report.status)}</span>
+                        </div>
+                        <div class="report-meta">
+                            <span class="report-author">Por: ${this.escapeHtml(report.authorName)}</span>
+                            <span class="report-date">Criado em: ${this.formatDate(report.createdAt)}</span>
+                            <span class="mission-date">Missão: ${this.formatDate(report.missionDate)}</span>
+                        </div>
+                        <div class="report-preview">
+                            <p>${this.escapeHtml(report.description.substring(0, 150))}${report.description.length > 150 ? '...' : ''}</p>
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn btn-primary view-report-btn" data-report-id="${report.id}">
+                                Ver Detalhes
+                            </button>
+                            <span class="comment-count">
+                                ${this.getCommentCount(report.id)} comentário${this.getCommentCount(report.id) !== 1 ? 's' : ''}
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Add event listeners to view buttons
+                document.querySelectorAll('.view-report-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const reportId = e.target.getAttribute('data-report-id');
+                        this.openReportModal(reportId);
+                    });
+                });
+            }
+
+            openReportModal(reportId) {
+                const report = this.filteredReports.find(r => r.id === reportId);
+                if (!report) return;
+
+                this.currentReportId = reportId;
+
+                // Populate modal
+                document.getElementById('modalReportTitle').textContent = report.title;
+                document.getElementById('modalReportAuthor').textContent = `Por: ${report.authorName}`;
+                document.getElementById('modalReportDate').textContent = `Criado em: ${this.formatDate(report.createdAt)}`;
+                document.getElementById('modalReportStatus').textContent = this.getStatusText(report.status);
+                document.getElementById('modalReportStatus').className = `report-status status-${report.status}`;
+                document.getElementById('modalReportDescription').textContent = report.description;
+                document.getElementById('modalMissionDate').textContent = this.formatDate(report.missionDate);
+
+                // Load comments
+                this.loadReportComments(reportId);
+
+                // Show modal
+                document.getElementById('reportModal').style.display = 'flex';
+            }
+
+            closeModal() {
+                document.getElementById('reportModal').style.display = 'none';
+                this.currentReportId = null;
+                document.getElementById('newComment').value = '';
+            }
+
+            loadComments() {
+                try {
+                    const stored = localStorage.getItem('ordem_paranormal_report_comments');
+                    this.reportComments = stored ? JSON.parse(stored) : {};
+                } catch (error) {
+                    console.error('Error loading comments:', error);
+                    this.reportComments = {};
+                }
+            }
+
+            saveComments() {
+                try {
+                    localStorage.setItem('ordem_paranormal_report_comments', JSON.stringify(this.reportComments));
+                } catch (error) {
+                    console.error('Error saving comments:', error);
+                }
+            }
+
+            loadReportComments(reportId) {
+                const commentsList = document.getElementById('commentsList');
+                const comments = this.reportComments[reportId] || [];
+
+                if (comments.length === 0) {
+                    commentsList.innerHTML = '<p class="no-comments">Nenhum comentário ainda.</p>';
+                    return;
+                }
+
+                commentsList.innerHTML = comments.map(comment => `
+                    <div class="comment">
+                        <div class="comment-header">
+                            <span class="comment-author">${this.escapeHtml(comment.authorName)}</span>
+                            <span class="comment-date">${this.formatDate(comment.createdAt)}</span>
+                        </div>
+                        <div class="comment-content">
+                            <p>${this.escapeHtml(comment.content)}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            addComment() {
+                const commentText = document.getElementById('newComment').value.trim();
+                if (!commentText || !this.currentReportId) return;
+
+                const comment = {
+                    id: `comment_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+                    reportId: this.currentReportId,
+                    authorId: this.currentUser.id,
+                    authorName: this.currentUser.name || this.currentUser.username,
+                    content: commentText,
+                    createdAt: new Date().toISOString()
+                };
+
+                // Add to comments
+                if (!this.reportComments[this.currentReportId]) {
+                    this.reportComments[this.currentReportId] = [];
+                }
+                this.reportComments[this.currentReportId].push(comment);
+
+                // Save and reload
+                this.saveComments();
+                this.loadReportComments(this.currentReportId);
+                
+                // Clear input
+                document.getElementById('newComment').value = '';
+
+                // Show success message
+                this.showSuccessMessage('Comentário adicionado com sucesso!');
+            }
+
+            getCommentCount(reportId) {
+                return (this.reportComments[reportId] || []).length;
+            }
+
+            getStatusText(status) {
+                const statusMap = {
+                    'completed': 'Concluída',
+                    'failed': 'Falhada',
+                    'partial': 'Parcial'
+                };
+                return statusMap[status] || status;
+            }
+
+            formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            showLoading() {
+                document.getElementById('loadingMessage').style.display = 'block';
+                document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('noReportsMessage').style.display = 'none';
+                document.getElementById('reportsList').style.display = 'none';
+            }
+
+            hideLoading() {
+                document.getElementById('loadingMessage').style.display = 'none';
+            }
+
+            showError(message) {
+                document.getElementById('errorText').textContent = message;
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('loadingMessage').style.display = 'none';
+                document.getElementById('noReportsMessage').style.display = 'none';
+                document.getElementById('reportsList').style.display = 'none';
+            }
+
+            hideError() {
+                document.getElementById('errorMessage').style.display = 'none';
+            }
+
+            showSuccessMessage(message) {
+                // Create temporary success message
+                const successDiv = document.createElement('div');
+                successDiv.className = 'success-message';
+                successDiv.textContent = message;
+                successDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #4a7c59;
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 5px;
+                    z-index: 1000;
+                    animation: slideIn 0.3s ease-out;
+                `;
+                
+                document.body.appendChild(successDiv);
+                
+                setTimeout(() => {
+                    successDiv.remove();
+                }, 3000);
+            }
+        }
+
+        // Initialize page when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const teamReportsPage = new TeamReportsPage();
+            teamReportsPage.init();
+        });
+    </script>
+</body>
+</html>

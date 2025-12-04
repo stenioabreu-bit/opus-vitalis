@@ -17,16 +17,39 @@ class AuthService {
     // Validate credentials against static database
     async validateCredentials(username, password) {
         try {
-            const isValid = await this.dataLoader.validateUserCredentials(username, password);
+            // Input validation
+            if (!username || !password) {
+                return {
+                    success: false,
+                    message: 'Por favor, preencha usuário e senha'
+                };
+            }
+
+            if (typeof username !== 'string' || typeof password !== 'string') {
+                return {
+                    success: false,
+                    message: 'Formato inválido de credenciais'
+                };
+            }
+
+            const isValid = await this.dataLoader.validateUserCredentials(username.trim(), password);
+            
+            if (this.dataLoader.isUsingFallbackData()) {
+                console.warn('Sistema operando com dados de fallback');
+            }
+            
             return {
                 success: isValid,
-                message: isValid ? 'Credenciais válidas' : 'Usuário ou senha inválidos'
+                message: isValid ? 'Credenciais válidas' : 'Usuário ou senha inválidos',
+                usingFallback: this.dataLoader.isUsingFallbackData()
             };
         } catch (error) {
             console.error('Error validating credentials:', error);
             return {
                 success: false,
-                message: 'Erro ao validar credenciais. Tente novamente.'
+                message: error.message.includes('carregar') ? 
+                    error.message : 
+                    'Erro interno do sistema. Verifique sua conexão e tente novamente.'
             };
         }
     }
@@ -34,11 +57,20 @@ class AuthService {
     // Load user data from database
     async loadUserData(username) {
         try {
-            const userData = await this.dataLoader.getUserByUsername(username);
+            if (!username || typeof username !== 'string') {
+                throw new Error('Nome de usuário inválido');
+            }
+
+            const userData = await this.dataLoader.getUserByUsername(username.trim());
+            
+            if (!userData) {
+                throw new Error('Dados do usuário não encontrados');
+            }
+
             return userData;
         } catch (error) {
             console.error('Error loading user data:', error);
-            return null;
+            throw new Error(`Erro ao carregar dados do usuário: ${error.message}`);
         }
     }
 
@@ -54,28 +86,36 @@ class AuthService {
 
             // Load user data
             const userData = await this.loadUserData(username);
-            
-            if (!userData) {
+
+            // Create session with error handling
+            try {
+                this.currentUser = userData;
+                localStorage.setItem(this.sessionKey, JSON.stringify(userData));
+            } catch (storageError) {
+                console.error('Error saving session:', storageError);
                 return {
                     success: false,
-                    message: 'Erro ao carregar dados do usuário'
+                    message: 'Erro ao salvar sessão. Verifique se o armazenamento local está habilitado.'
                 };
             }
 
-            // Create session
-            this.currentUser = userData;
-            localStorage.setItem(this.sessionKey, JSON.stringify(userData));
+            const successMessage = validation.usingFallback ? 
+                'Login realizado com sucesso! (Modo offline)' : 
+                'Login realizado com sucesso!';
 
             return {
                 success: true,
-                message: 'Login realizado com sucesso!',
-                user: userData
+                message: successMessage,
+                user: userData,
+                usingFallback: validation.usingFallback
             };
         } catch (error) {
             console.error('Error during login:', error);
             return {
                 success: false,
-                message: 'Erro interno do sistema. Tente novamente.'
+                message: error.message.includes('carregar') ? 
+                    error.message : 
+                    'Erro interno do sistema. Tente novamente.'
             };
         }
     }
@@ -89,17 +129,33 @@ class AuthService {
 
     // Check if user has active session
     checkSession() {
-        const sessionData = localStorage.getItem(this.sessionKey);
-        if (sessionData) {
-            try {
-                this.currentUser = JSON.parse(sessionData);
-                return true;
-            } catch (error) {
+        try {
+            const sessionData = localStorage.getItem(this.sessionKey);
+            if (!sessionData) {
+                return false;
+            }
+
+            const userData = JSON.parse(sessionData);
+            
+            // Validate session data structure
+            if (!userData || !userData.id || !userData.username) {
+                console.warn('Invalid session data found, clearing session');
                 localStorage.removeItem(this.sessionKey);
                 return false;
             }
+
+            this.currentUser = userData;
+            return true;
+        } catch (error) {
+            console.error('Error checking session:', error);
+            // Clear corrupted session data
+            try {
+                localStorage.removeItem(this.sessionKey);
+            } catch (clearError) {
+                console.error('Error clearing corrupted session:', clearError);
+            }
+            return false;
         }
-        return false;
     }
 
     // Get current user

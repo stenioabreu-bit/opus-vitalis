@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property 9 Test - Report Chronological Ordering</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-results {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .test-pass {
+            color: green;
+            font-weight: bold;
+        }
+        .test-fail {
+            color: red;
+            font-weight: bold;
+        }
+        .test-running {
+            color: orange;
+            font-weight: bold;
+        }
+        .test-details {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #ccc;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Property 9: Report Chronological Ordering Test</h1>
+    <p><strong>Feature:</strong> simple-login-auth, Property 9: Report chronological ordering</p>
+    <p><strong>Validates:</strong> Requirements 6.4</p>
+    <div id="test-results"></div>
+    
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script>
+        // Simple property-based testing framework
+        class SimplePropertyTest {
+            constructor() {
+                this.results = [];
+            }
+
+            // Generate random string
+            randomString(minLength = 1, maxLength = 20) {
+                const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_';
+                const length = Math.floor(Math.random() * (maxLength - minLength + 1)) + minLength;
+                let result = '';
+                for (let i = 0; i < length; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return result;
+            }
+
+            // Generate random date
+            randomDate() {
+                const start = new Date('2020-01-01');
+                const end = new Date();
+                return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+            }
+
+            // Generate random status
+            randomStatus() {
+                const statuses = ['completed', 'partial', 'failed'];
+                return statuses[Math.floor(Math.random() * statuses.length)];
+            }
+
+            // Sleep function
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            // Run property test
+            async runProperty(name, propertyFn, numRuns = 100) {
+                const resultsDiv = document.getElementById('test-results');
+                const testDiv = document.createElement('div');
+                testDiv.className = 'test-results';
+                testDiv.innerHTML = `<div class="test-running">Running: ${name}...</div>`;
+                resultsDiv.appendChild(testDiv);
+
+                let passCount = 0;
+                let failCount = 0;
+                let errors = [];
+
+                try {
+                    for (let i = 0; i < numRuns; i++) {
+                        try {
+                            await propertyFn();
+                            passCount++;
+                        } catch (error) {
+                            failCount++;
+                            if (errors.length < 5) { // Only store first 5 errors
+                                errors.push(`Run ${i + 1}: ${error.message}`);
+                            }
+                        }
+                    }
+                    
+                    if (failCount === 0) {
+                        testDiv.innerHTML = `<div class="test-pass">✓ PASS: ${name} (${passCount}/${numRuns} runs passed)</div>`;
+                        this.results.push({ name, status: 'PASS' });
+                    } else {
+                        testDiv.innerHTML = `
+                            <div class="test-fail">✗ FAIL: ${name} (${passCount}/${numRuns} runs passed)</div>
+                            <div class="test-details">
+                                <strong>Sample errors:</strong><br>
+                                ${errors.join('<br>')}
+                            </div>
+                        `;
+                        this.results.push({ name, status: 'FAIL', errors });
+                    }
+                } catch (error) {
+                    testDiv.innerHTML = `<div class="test-fail">✗ FAIL: ${name}<br>Setup Error: ${error.message}</div>`;
+                    this.results.push({ name, status: 'FAIL', error: error.message });
+                }
+            }
+        }
+
+        // Mock ReportsService for testing
+        class MockReportsService {
+            constructor() {
+                this.mockLocalStorage = {};
+                this.localStorageKey = 'ordem_paranormal_reports';
+                this.currentUser = {
+                    id: "user_001",
+                    username: "bella_evans",
+                    name: "Bella Evans",
+                    role: "agent",
+                    team: "team_alpha"
+                };
+            }
+
+            // Mock localStorage methods
+            getLocalReports() {
+                try {
+                    const stored = this.mockLocalStorage[this.localStorageKey];
+                    return stored ? JSON.parse(stored) : {};
+                } catch (error) {
+                    return {};
+                }
+            }
+
+            saveLocalReports(reports) {
+                try {
+                    this.mockLocalStorage[this.localStorageKey] = JSON.stringify(reports);
+                    return true;
+                } catch (error) {
+                    return false;
+                }
+            }
+
+            generateReportId() {
+                const timestamp = Date.now();
+                const random = Math.random().toString(36).substring(2, 11);
+                return `report_${timestamp}_${random}`;
+            }
+
+            async getAllReports() {
+                return this.getLocalReports();
+            }
+
+            async createReport(reportData) {
+                try {
+                    // Validate required fields
+                    if (!reportData.title || !reportData.description || !reportData.missionDate || !reportData.status) {
+                        return {
+                            success: false,
+                            message: 'Todos os campos obrigatórios devem ser preenchidos'
+                        };
+                    }
+
+                    // Generate unique ID and timestamps
+                    const reportId = this.generateReportId();
+                    const now = new Date().toISOString();
+
+                    // Create report object
+                    const newReport = {
+                        id: reportId,
+                        title: reportData.title.trim(),
+                        description: reportData.description.trim(),
+                        missionDate: reportData.missionDate,
+                        status: reportData.status,
+                        authorId: this.currentUser.id,
+                        authorName: this.currentUser.name,
+                        createdAt: now,
+                        updatedAt: now,
+                        sharedWith: [],
+                        isPublic: false
+                    };
+
+                    // Load existing local reports
+                    const localReports = this.getLocalReports();
+                    
+                    // Add new report
+                    localReports[reportId] = newReport;
+                    
+                    // Save to localStorage
+                    if (!this.saveLocalReports(localReports)) {
+                        return {
+                            success: false,
+                            message: 'Erro ao salvar relatório'
+                        };
+                    }
+
+                    return {
+                        success: true,
+                        message: 'Relatório criado com sucesso!',
+                        report: newReport
+                    };
+
+                } catch (error) {
+                    return {
+                        success: false,
+                        message: 'Erro interno do sistema'
+                    };
+                }
+            }
+
+            async loadReports(userId) {
+                try {
+                    const allReports = await this.getAllReports();
+                    // Filter reports by user ID and sort by creation date (most recent first)
+                    const userReports = Object.values(allReports)
+                        .filter(report => report.authorId === userId)
+                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    
+                    return userReports;
+                } catch (error) {
+                    console.error('Error loading reports:', error);
+                    return [];
+                }
+            }
+        }
+
+        // Run the property tests
+        async function runTests() {
+            const tester = new SimplePropertyTest();
+            const reportsService = new MockReportsService();
+
+            /**
+             * Property 9: Report chronological ordering
+             * For any list of reports displayed to a user, they should be ordered by creation date with most recent first
+             */
+
+            // Test 1: Multiple reports are ordered chronologically
+            await tester.runProperty(
+                'Property 9a: Multiple reports chronological ordering',
+                async () => {
+                    const numReports = Math.floor(Math.random() * 8) + 2; // 2-9 reports
+                    const createdReports = [];
+                    
+                    // Create multiple reports with small delays to ensure different timestamps
+                    for (let i = 0; i < numReports; i++) {
+                        if (i > 0) {
+                            await tester.sleep(10); // Small delay to ensure different timestamps
+                        }
+                        
+                        const reportData = {
+                            title: `Test Report ${i}`,
+                            description: `This is test report number ${i} with sufficient description length for testing.`,
+                            missionDate: tester.randomDate().toISOString().split('T')[0],
+                            status: tester.randomStatus()
+                        };
+                        
+                        const result = await reportsService.createReport(reportData);
+                        if (!result.success) {
+                            throw new Error(`Failed to create report: ${result.message}`);
+                        }
+                        createdReports.push(result.report);
+                    }
+                    
+                    // Load reports for the user
+                    const userReports = await reportsService.loadReports('user_001');
+                    
+                    // Filter to only the reports we just created
+                    const testReports = userReports.filter(report => 
+                        createdReports.some(created => created.id === report.id)
+                    );
+                    
+                    if (testReports.length !== numReports) {
+                        throw new Error(`Expected ${numReports} reports, got ${testReports.length}`);
+                    }
+                    
+                    // Verify chronological ordering (most recent first)
+                    for (let i = 0; i < testReports.length - 1; i++) {
+                        const currentDate = new Date(testReports[i].createdAt);
+                        const nextDate = new Date(testReports[i + 1].createdAt);
+                        
+                        if (currentDate.getTime() < nextDate.getTime()) {
+                            throw new Error(`Reports not in chronological order: ${testReports[i].createdAt} should be >= ${testReports[i + 1].createdAt}`);
+                        }
+                    }
+                    
+                    // Verify that the most recent report is first
+                    const sortedByDate = [...testReports].sort((a, b) => 
+                        new Date(b.createdAt) - new Date(a.createdAt)
+                    );
+                    
+                    for (let i = 0; i < testReports.length; i++) {
+                        if (testReports[i].id !== sortedByDate[i].id) {
+                            throw new Error(`Report order mismatch at position ${i}`);
+                        }
+                    }
+                }
+            );
+
+            // Test 2: Reports with specific timestamps are ordered correctly
+            await tester.runProperty(
+                'Property 9b: Specific timestamp ordering',
+                async () => {
+                    const numReports = Math.floor(Math.random() * 5) + 3; // 3-7 reports
+                    const dates = [];
+                    
+                    // Generate random dates
+                    for (let i = 0; i < numReports; i++) {
+                        dates.push(tester.randomDate());
+                    }
+                    
+                    // Create reports with specific timestamps by mocking Date.now()
+                    const originalNow = Date.now;
+                    const createdReports = [];
+                    
+                    try {
+                        for (let i = 0; i < dates.length; i++) {
+                            // Mock Date.now to return our specific timestamp
+                            Date.now = () => dates[i].getTime();
+                            
+                            const reportData = {
+                                title: `Timed Report ${i}`,
+                                description: `This is a timed report with timestamp ${dates[i].toISOString()}.`,
+                                missionDate: '2024-12-01',
+                                status: tester.randomStatus()
+                            };
+                            
+                            const result = await reportsService.createReport(reportData);
+                            if (!result.success) {
+                                throw new Error(`Failed to create report: ${result.message}`);
+                            }
+                            createdReports.push(result.report);
+                        }
+                    } finally {
+                        // Restore original Date.now
+                        Date.now = originalNow;
+                    }
+                    
+                    // Load reports for the user
+                    const userReports = await reportsService.loadReports('user_001');
+                    
+                    // Filter to only the reports we just created
+                    const testReports = userReports.filter(report => 
+                        createdReports.some(created => created.id === report.id)
+                    );
+                    
+                    // Verify chronological ordering (most recent first)
+                    for (let i = 0; i < testReports.length - 1; i++) {
+                        const currentDate = new Date(testReports[i].createdAt);
+                        const nextDate = new Date(testReports[i + 1].createdAt);
+                        
+                        if (currentDate.getTime() < nextDate.getTime()) {
+                            throw new Error(`Reports not in chronological order: ${testReports[i].createdAt} should be >= ${testReports[i + 1].createdAt}`);
+                        }
+                    }
+                }
+            );
+
+            // Test 3: Empty list handling
+            await tester.runProperty(
+                'Property 9c: Empty list handling',
+                async () => {
+                    // Test with a user that has no reports
+                    const userReports = await reportsService.loadReports('nonexistent_user');
+                    
+                    if (!Array.isArray(userReports)) {
+                        throw new Error(`Expected array, got ${typeof userReports}`);
+                    }
+                    
+                    if (userReports.length !== 0) {
+                        throw new Error(`Expected empty array, got ${userReports.length} reports`);
+                    }
+                }
+            );
+
+            // Test 4: Single report handling
+            await tester.runProperty(
+                'Property 9d: Single report handling',
+                async () => {
+                    const reportData = {
+                        title: 'Single Report Test',
+                        description: 'Testing chronological ordering with a single report for property validation.',
+                        missionDate: tester.randomDate().toISOString().split('T')[0],
+                        status: tester.randomStatus()
+                    };
+                    
+                    const result = await reportsService.createReport(reportData);
+                    if (!result.success) {
+                        throw new Error(`Failed to create report: ${result.message}`);
+                    }
+                    
+                    const userReports = await reportsService.loadReports('user_001');
+                    const singleReport = userReports.filter(r => r.id === result.report.id);
+                    
+                    if (singleReport.length !== 1) {
+                        throw new Error(`Expected 1 report, got ${singleReport.length}`);
+                    }
+                    
+                    if (singleReport[0].id !== result.report.id) {
+                        throw new Error(`Report ID mismatch`);
+                    }
+                }
+            );
+
+            // Display summary
+            const resultsDiv = document.getElementById('test-results');
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'test-results';
+            
+            const passed = tester.results.filter(r => r.status === 'PASS').length;
+            const failed = tester.results.filter(r => r.status === 'FAIL').length;
+            
+            summaryDiv.innerHTML = `
+                <h3>Test Summary</h3>
+                <p><strong>Total Tests:</strong> ${tester.results.length}</p>
+                <p><strong>Passed:</strong> <span class="test-pass">${passed}</span></p>
+                <p><strong>Failed:</strong> <span class="test-fail">${failed}</span></p>
+                ${failed === 0 ? '<p><strong>✓ Property 9: Report chronological ordering - ALL TESTS PASSED</strong></p>' : ''}
+            `;
+            
+            resultsDiv.appendChild(summaryDiv);
+        }
+
+        // Start tests when page loads
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html>

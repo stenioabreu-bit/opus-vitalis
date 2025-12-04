@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Error Handling - Ordem Paranormal</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h1>Teste de Error Handling e User Feedback</h1>
+            
+            <div id="message-container"></div>
+            
+            <div class="form-group">
+                <label for="test-input">Campo de Teste:</label>
+                <input type="text" id="test-input" placeholder="Digite algo para testar validação">
+            </div>
+            
+            <div class="form-group">
+                <button id="test-success" class="btn btn-primary">Testar Sucesso</button>
+                <button id="test-error" class="btn btn-danger">Testar Erro</button>
+                <button id="test-loading" class="btn btn-secondary">Testar Loading</button>
+                <button id="test-notification" class="btn btn-secondary">Testar Notificação</button>
+            </div>
+            
+            <div class="form-group">
+                <button id="test-overlay" class="btn btn-secondary">Testar Loading Overlay</button>
+                <button id="test-validation" class="btn btn-secondary">Testar Validação</button>
+                <button id="test-progress" class="btn btn-secondary">Testar Progresso</button>
+            </div>
+            
+            <div id="progress-container"></div>
+        </div>
+    </div>
+
+    <script src="scripts/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Test success message
+            document.getElementById('test-success').addEventListener('click', function() {
+                Utils.showMessage('Operação realizada com sucesso!', 'success');
+            });
+
+            // Test error message
+            document.getElementById('test-error').addEventListener('click', function() {
+                Utils.showMessage('Erro ao processar solicitação. Tente novamente.', 'error');
+            });
+
+            // Test loading state
+            document.getElementById('test-loading').addEventListener('click', function() {
+                const btn = this;
+                Utils.showLoading('test-loading', 'Processando...');
+                
+                setTimeout(() => {
+                    Utils.hideLoading('test-loading');
+                    Utils.showMessage('Processamento concluído!', 'success');
+                }, 3000);
+            });
+
+            // Test notification
+            document.getElementById('test-notification').addEventListener('click', function() {
+                Utils.showNotification('Esta é uma notificação de teste!', 'info');
+            });
+
+            // Test loading overlay
+            document.getElementById('test-overlay').addEventListener('click', function() {
+                Utils.showLoadingOverlay('Carregando dados do sistema...');
+                
+                setTimeout(() => {
+                    Utils.hideLoadingOverlay();
+                    Utils.showMessage('Dados carregados com sucesso!', 'success');
+                }, 2000);
+            });
+
+            // Test field validation
+            document.getElementById('test-validation').addEventListener('click', function() {
+                const input = document.getElementById('test-input');
+                const value = input.value.trim();
+                
+                if (value.length < 3) {
+                    Utils.setFieldValidation('test-input', false, 'O campo deve ter pelo menos 3 caracteres');
+                } else {
+                    Utils.setFieldValidation('test-input', true, 'Campo válido!');
+                }
+            });
+
+            // Test progress indicator
+            document.getElementById('test-progress').addEventListener('click', function() {
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    Utils.showProgress('progress-container', progress, `Progresso: ${progress}%`);
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            Utils.hideProgress('progress-container');
+                            Utils.showMessage('Processo concluído!', 'success');
+                        }, 1000);
+                    }
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>
