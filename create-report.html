@@ -169,6 +169,8 @@
         class CreateReportController {
             constructor() {
                 this.authService = new AuthService();
+                // Share auth service instance globally
+                window.authServiceInstance = this.authService;
                 this.reportsService = new ReportsService();
                 this.currentUser = null;
                 this.isSubmitting = false;

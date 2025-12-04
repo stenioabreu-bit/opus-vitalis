@@ -93,6 +93,76 @@ class OpusVitalisMigration {
             console.error('❌ Erro durante limpeza:', error);
         }
     }
+
+    // Check if there's old data to migrate
+    hasOldData() {
+        return this.needsMigration();
+    }
+
+    // Migrate data with detailed results
+    migrateData() {
+        try {
+            let sessionsMigrated = 0;
+            let reportsMigrated = 0;
+            
+            console.log('🔄 Iniciando migração detalhada...');
+            
+            // Migrate session
+            const sessionData = localStorage.getItem(this.oldKeys.session);
+            if (sessionData) {
+                localStorage.setItem(this.newKeys.session, sessionData);
+                localStorage.removeItem(this.oldKeys.session);
+                sessionsMigrated = 1;
+                console.log(`✅ Sessão migrada`);
+            }
+            
+            // Migrate reports
+            const reportsData = localStorage.getItem(this.oldKeys.reports);
+            if (reportsData) {
+                localStorage.setItem(this.newKeys.reports, reportsData);
+                localStorage.removeItem(this.oldKeys.reports);
+                try {
+                    const parsed = JSON.parse(reportsData);
+                    reportsMigrated = Object.keys(parsed).length;
+                } catch (e) {
+                    reportsMigrated = 1;
+                }
+                console.log(`✅ Relatórios migrados: ${reportsMigrated}`);
+            }
+            
+            // Migrate notifications
+            const notificationsData = localStorage.getItem(this.oldKeys.notifications);
+            if (notificationsData) {
+                localStorage.setItem(this.newKeys.notifications, notificationsData);
+                localStorage.removeItem(this.oldKeys.notifications);
+                console.log(`✅ Notificações migradas`);
+            }
+            
+            // Migrate comments
+            const commentsData = localStorage.getItem(this.oldKeys.comments);
+            if (commentsData) {
+                localStorage.setItem(this.newKeys.comments, commentsData);
+                localStorage.removeItem(this.oldKeys.comments);
+                console.log(`✅ Comentários migrados`);
+            }
+            
+            return {
+                success: true,
+                sessionsMigrated,
+                reportsMigrated,
+                message: 'Migração concluída com sucesso'
+            };
+            
+        } catch (error) {
+            console.error('❌ Erro durante migração detalhada:', error);
+            return {
+                success: false,
+                sessionsMigrated: 0,
+                reportsMigrated: 0,
+                message: error.message
+            };
+        }
+    }
 }
 
 // Global migration instance
@@ -108,3 +178,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Export for manual use
 window.OpusVitalisMigration = OpusVitalisMigration;
+window.MigrationService = OpusVitalisMigration;

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Simples - Criar Relatório</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        
+        .test-section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        
+        .test-button {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        
+        .test-button:hover {
+            background: #0099cc;
+        }
+        
+        .status {
+            font-family: monospace;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .success { color: var(--success-green); }
+        .error { color: var(--error-red); }
+        .warning { color: #ffa500; }
+        
+        .form-simple {
+            display: grid;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .form-simple input, .form-simple textarea, .form-simple select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 style="color: var(--accent-blue); text-align: center;">
+            🧪 Teste Simples - Criar Relatório
+        </h1>
+        
+        <div class="test-section">
+            <h3>1. Verificação de Autenticação</h3>
+            <div id="auth-status" class="status">Aguardando verificação...</div>
+            <button class="test-button" onclick="checkAuth()">Verificar Autenticação</button>
+            <button class="test-button" onclick="forceLogin()">Forçar Login (bella_evans)</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. Teste de Criação de Relatório</h3>
+            
+            <div class="form-simple">
+                <input type="text" id="title" placeholder="Título do relatório" value="Teste Simples">
+                <textarea id="description" placeholder="Descrição" rows="3">Relatório de teste para verificar funcionamento.</textarea>
+                <input type="date" id="missionDate" value="">
+                <select id="status">
+                    <option value="completed">Concluída</option>
+                    <option value="partial">Parcial</option>
+                    <option value="failed">Falhou</option>
+                </select>
+            </div>
+            
+            <div id="create-status" class="status">Aguardando teste...</div>
+            <button class="test-button" onclick="testCreateReport()">Criar Relatório de Teste</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. Verificação de Relatórios</h3>
+            <div id="reports-status" class="status">Aguardando verificação...</div>
+            <button class="test-button" onclick="checkReports()">Verificar Relatórios</button>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="create-report.html" class="btn btn-primary">Ir para Criar Relatório</a>
+            <a href="dashboard.html" class="btn btn-secondary">Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/data-loader.js"></script>
+    <script src="scripts/reports.js"></script>
+    
+    <script>
+        let authService, reportsService;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default date
+            document.getElementById('missionDate').value = new Date().toISOString().split('T')[0];
+            
+            // Initialize services
+            authService = new AuthService();
+            window.authServiceInstance = authService; // Share globally
+            reportsService = new ReportsService();
+            
+            // Auto-check auth
+            setTimeout(checkAuth, 500);
+        });
+        
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : type === 'warning' ? 'warning' : '';
+            
+            element.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            element.scrollTop = element.scrollHeight;
+        }
+        
+        function clearLog(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+        }
+        
+        function checkAuth() {
+            clearLog('auth-status');
+            log('auth-status', 'Verificando autenticação...', 'info');
+            
+            try {
+                // Check session
+                const hasSession = authService.checkSession();
+                log('auth-status', `Sessão ativa: ${hasSession}`, hasSession ? 'success' : 'warning');
+                
+                // Get current user
+                const currentUser = authService.getCurrentUser();
+                if (currentUser) {
+                    log('auth-status', `✅ Usuário logado: ${currentUser.username}`, 'success');
+                    log('auth-status', `   Nome: ${currentUser.name}`, 'info');
+                    log('auth-status', `   ID: ${currentUser.id}`, 'info');
+                    log('auth-status', `   Role: ${currentUser.role}`, 'info');
+                } else {
+                    log('auth-status', '❌ Nenhum usuário logado', 'error');
+                }
+                
+                // Check localStorage
+                const sessionData = localStorage.getItem('opus_vitalis_session');
+                if (sessionData) {
+                    log('auth-status', '✅ Dados de sessão no localStorage', 'success');
+                    try {
+                        const parsed = JSON.parse(sessionData);
+                        log('auth-status', `   Usuário no storage: ${parsed.username}`, 'info');
+                    } catch (e) {
+                        log('auth-status', '❌ Dados corrompidos no localStorage', 'error');
+                    }
+                } else {
+                    log('auth-status', '❌ Nenhum dado no localStorage', 'error');
+                }
+                
+            } catch (error) {
+                log('auth-status', `❌ ERRO: ${error.message}`, 'error');
+            }
+        }
+        
+        function forceLogin() {
+            clearLog('auth-status');
+            log('auth-status', 'Forçando login para bella_evans...', 'info');
+            
+            try {
+                // Create user data
+                const userData = {
+                    id: "user_001",
+                    username: "bella_evans",
+                    name: "Bella Evans",
+                    role: "agent",
+                    team: "liderança_opus"
+                };
+                
+                // Set in auth service
+                authService.currentUser = userData;
+                
+                // Save to localStorage
+                localStorage.setItem('opus_vitalis_session', JSON.stringify(userData));
+                
+                log('auth-status', '✅ Login forçado com sucesso!', 'success');
+                log('auth-status', `   Usuário: ${userData.username}`, 'success');
+                log('auth-status', '   Verificando...', 'info');
+                
+                // Verify
+                setTimeout(() => {
+                    const verified = authService.checkSession();
+                    const user = authService.getCurrentUser();
+                    
+                    if (verified && user) {
+                        log('auth-status', '✅ Verificação OK - Login funcionando!', 'success');
+                    } else {
+                        log('auth-status', '❌ Verificação falhou', 'error');
+                    }
+                }, 100);
+                
+            } catch (error) {
+                log('auth-status', `❌ ERRO: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testCreateReport() {
+            clearLog('create-status');
+            log('create-status', 'Testando criação de relatório...', 'info');
+            
+            try {
+                // Check auth first
+                const currentUser = authService.getCurrentUser();
+                if (!currentUser) {
+                    log('create-status', '❌ ERRO: Usuário não autenticado', 'error');
+                    log('create-status', '   Execute "Forçar Login" primeiro', 'warning');
+                    return;
+                }
+                
+                log('create-status', `✅ Usuário autenticado: ${currentUser.username}`, 'success');
+                
+                // Get form data
+                const reportData = {
+                    title: document.getElementById('title').value.trim(),
+                    description: document.getElementById('description').value.trim(),
+                    missionDate: document.getElementById('missionDate').value,
+                    status: document.getElementById('status').value
+                };
+                
+                log('create-status', 'Dados do relatório:', 'info');
+                log('create-status', `   Título: ${reportData.title}`, 'info');
+                log('create-status', `   Data: ${reportData.missionDate}`, 'info');
+                log('create-status', `   Status: ${reportData.status}`, 'info');
+                
+                // Validate
+                if (!reportData.title || !reportData.description || !reportData.missionDate || !reportData.status) {
+                    log('create-status', '❌ ERRO: Preencha todos os campos', 'error');
+                    return;
+                }
+                
+                // Create report
+                log('create-status', 'Chamando reportsService.createReport()...', 'info');
+                const result = await reportsService.createReport(reportData);
+                
+                if (result.success) {
+                    log('create-status', '🎉 SUCESSO! Relatório criado!', 'success');
+                    log('create-status', `   ID: ${result.report.id}`, 'success');
+                    log('create-status', `   Autor: ${result.report.authorName}`, 'info');
+                    log('create-status', `   Criado em: ${result.report.createdAt}`, 'info');
+                } else {
+                    log('create-status', `❌ ERRO: ${result.message}`, 'error');
+                }
+                
+            } catch (error) {
+                log('create-status', `❌ ERRO CRÍTICO: ${error.message}`, 'error');
+                console.error('Create report error:', error);
+            }
+        }
+        
+        async function checkReports() {
+            clearLog('reports-status');
+            log('reports-status', 'Verificando relatórios...', 'info');
+            
+            try {
+                const currentUser = authService.getCurrentUser();
+                if (!currentUser) {
+                    log('reports-status', '❌ ERRO: Usuário não autenticado', 'error');
+                    return;
+                }
+                
+                // Get all reports
+                const allReports = await reportsService.getAllReports();
+                log('reports-status', `Total de relatórios: ${Object.keys(allReports).length}`, 'info');
+                
+                // Get user reports
+                const userReports = await reportsService.loadReports(currentUser.id);
+                log('reports-status', `Relatórios do usuário: ${userReports.length}`, 'info');
+                
+                if (userReports.length > 0) {
+                    log('reports-status', 'Relatórios encontrados:', 'success');
+                    userReports.forEach((report, index) => {
+                        log('reports-status', `   ${index + 1}. "${report.title}" (${report.status})`, 'info');
+                    });
+                } else {
+                    log('reports-status', 'Nenhum relatório encontrado para este usuário', 'warning');
+                }
+                
+                // Check localStorage
+                const localReports = reportsService.getLocalReports();
+                log('reports-status', `Relatórios no localStorage: ${Object.keys(localReports).length}`, 'info');
+                
+            } catch (error) {
+                log('reports-status', `❌ ERRO: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

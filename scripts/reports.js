@@ -92,7 +92,15 @@ class ReportsService {
             }
 
             // Get current user from auth service
-            const authService = new AuthService();
+            // Try to get existing auth service instance or create new one
+            let authService;
+            if (window.authServiceInstance) {
+                authService = window.authServiceInstance;
+            } else {
+                authService = new AuthService();
+                // Initialize the auth service to check existing session
+                authService.checkSession();
+            }
             const currentUser = authService.getCurrentUser();
             
             if (!currentUser) {
